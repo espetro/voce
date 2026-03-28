@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voce</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  background: rgba(28, 28, 30, 0.97);
+  color: #e5e5ea;
+  width: 320px;
+  padding: 16px;
+  user-select: none;
+  -webkit-user-select: none;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* ---- Status row ---- */
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: #aeaeb2;
+}
+
+.dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot.orange { background: #ff9f0a; }
+.dot.green  { background: #32d74b; }
+.dot.grey   { background: #636366; }
+.dot.pulse  { animation: pulse 1.2s ease-in-out infinite; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+/* ---- Progress bar ---- */
+.progress-wrap {
+  background: #3a3a3c;
+  border-radius: 4px;
+  height: 4px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+.progress-bar {
+  height: 100%;
+  background: #0a84ff;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+.progress-bar.indeterminate {
+  width: 40%;
+  animation: indeterminate 1.4s ease-in-out infinite;
+}
+@keyframes indeterminate {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+
+/* ---- Section heading ---- */
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #636366;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+/* ---- Body text ---- */
+.body-text {
+  color: #aeaeb2;
+  font-size: 12px;
+  margin-bottom: 14px;
+}
+
+/* ---- Warning banner ---- */
+.warning {
+  background: rgba(255, 159, 10, 0.15);
+  border: 1px solid rgba(255, 159, 10, 0.35);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #ff9f0a;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.warning a {
+  color: #ff9f0a;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ---- Buttons ---- */
+.btn {
+  display: block;
+  width: 100%;
+  padding: 9px 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  margin-bottom: 8px;
+}
+.btn:last-child { margin-bottom: 0; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn:not(:disabled):active { opacity: 0.75; }
+
+.btn-primary   { background: #0a84ff; color: #fff; }
+.btn-secondary { background: #3a3a3c; color: #e5e5ea; }
+.btn-danger    { background: rgba(255, 69, 58, 0.2); color: #ff453a; }
+
+/* ---- Recording badge ---- */
+.recording-badge {
+  font-size: 11px;
+  color: #636366;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+/* ---- Check mark ---- */
+.check { color: #32d74b; font-size: 14px; margin-right: 6px; }
+.cross { color: #ff453a; font-size: 14px; margin-right: 6px; }
+
+/* ---- Divider ---- */
+.divider {
+  border: none;
+  border-top: 1px solid #3a3a3c;
+  margin: 12px 0;
+}
+
+/* ---- State screens ---- */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ---- Filter stats ---- */
+.stats-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #636366;
+  margin-top: 10px;
+}
+.stats-value { color: #aeaeb2; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+
+<!-- ================================================================ -->
+<!-- MODEL_LOADING screen                                              -->
+<!-- ================================================================ -->
+<div id="screen-loading" class="screen">
+  <div class="status-row">
+    <div class="dot orange pulse"></div>
+    <span id="loading-label">Loading voice model…</span>
+  </div>
+  <div class="progress-wrap">
+    <div id="loading-bar" class="progress-bar indeterminate"></div>
+  </div>
+  <div class="body-text">
+    Voce learns to recognise your voice and filters out everyone else's on your calls.
+  </div>
+  <div id="blackhole-warning" class="warning" style="display:none">
+    ⚠ BlackHole 2ch is required.
+    <a onclick="send({cmd:'open_blackhole_link'})">Install →</a>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- ONBOARDING_READY screen                                           -->
+<!-- ================================================================ -->
+<div id="screen-onboarding" class="screen">
+  <div class="status-row">
+    <div class="dot green"></div>
+    <span>Model ready</span>
+  </div>
+  <div id="blackhole-warning-ob" class="warning" style="display:none">
+    ⚠ BlackHole 2ch is required.
+    <a onclick="send({cmd:'open_blackhole_link'})">Install →</a>
+  </div>
+  <div class="section-title">Step 1 of 2 — Record Your Voice</div>
+  <div class="body-text">
+    Speak naturally for 20 seconds. Read anything aloud — an article, your emails, count numbers. The app needs to hear you clearly.
+  </div>
+  <div class="recording-badge">Recording 1 of 2</div>
+  <button class="btn btn-primary" onclick="send({cmd:'start_recording',index:1})">Start Recording</button>
+</div>
+
+<!-- ================================================================ -->
+<!-- RECORDING_1 screen                                                -->
+<!-- ================================================================ -->
+<div id="screen-recording1" class="screen">
+  <div class="status-row">
+    <div class="dot orange pulse"></div>
+    <span>Recording… <span id="rec1-remaining">20</span>s remaining</span>
+  </div>
+  <div class="progress-wrap">
+    <div id="rec1-bar" class="progress-bar" style="width:0%"></div>
+  </div>
+  <div class="body-text">Keep talking naturally.</div>
+  <div class="recording-badge">Recording 1 of 2</div>
+</div>
+
+<!-- ================================================================ -->
+<!-- RECORDING_1 invalid                                               -->
+<!-- ================================================================ -->
+<div id="screen-rec1-invalid" class="screen">
+  <div class="status-row">
+    <div class="dot grey"></div>
+    <span>Not enough speech detected</span>
+  </div>
+  <div class="body-text">
+    <span class="cross">✗</span>Please try again in a quieter environment.
+  </div>
+  <button class="btn btn-primary" onclick="send({cmd:'start_recording',index:1})">Retry</button>
+</div>
+
+<!-- ================================================================ -->
+<!-- RECORDING_2 screen                                                -->
+<!-- ================================================================ -->
+<div id="screen-recording2-ready" class="screen">
+  <div class="status-row">
+    <div class="dot green"></div>
+    <span><span class="check">✓</span>Recording 1 complete</span>
+  </div>
+  <div class="section-title">Step 2 of 2 — One More Recording</div>
+  <div class="body-text">Same thing — speak naturally for 20 seconds.</div>
+  <div class="recording-badge">Recording 2 of 2</div>
+  <button class="btn btn-primary" onclick="send({cmd:'start_recording',index:2})">Start Recording</button>
+</div>
+
+<div id="screen-recording2" class="screen">
+  <div class="status-row">
+    <div class="dot orange pulse"></div>
+    <span>Recording… <span id="rec2-remaining">20</span>s remaining</span>
+  </div>
+  <div class="progress-wrap">
+    <div id="rec2-bar" class="progress-bar" style="width:0%"></div>
+  </div>
+  <div class="body-text">Keep talking naturally.</div>
+  <div class="recording-badge">Recording 2 of 2</div>
+</div>
+
+<div id="screen-rec2-invalid" class="screen">
+  <div class="status-row">
+    <div class="dot grey"></div>
+    <span>Not enough speech detected</span>
+  </div>
+  <div class="body-text">
+    <span class="cross">✗</span>Please try again in a quieter environment.
+  </div>
+  <button class="btn btn-primary" onclick="send({cmd:'start_recording',index:2})">Retry</button>
+</div>
+
+<!-- ================================================================ -->
+<!-- ADAPTING screen                                                   -->
+<!-- ================================================================ -->
+<div id="screen-adapting" class="screen">
+  <div class="status-row">
+    <div class="dot orange pulse"></div>
+    <span>Adapting to your voice…</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar indeterminate"></div>
+  </div>
+  <div class="body-text">Voce is building your voice profile. This takes just a moment.</div>
+</div>
+
+<!-- ================================================================ -->
+<!-- TEST_READY screen                                                 -->
+<!-- ================================================================ -->
+<div id="screen-test-ready" class="screen">
+  <div class="status-row">
+    <div class="dot green"></div>
+    <span>Ready — your voice profile is saved</span>
+  </div>
+  <hr class="divider">
+  <div class="section-title">Test it out</div>
+  <div class="body-text">
+    Click Record, speak for a few seconds (try having someone else talk too), then click Stop. You'll hear the filtered playback — only your voice should come through.
+  </div>
+  <button class="btn btn-primary" onclick="send({cmd:'start_test'})">Start Recording</button>
+</div>
+
+<!-- ================================================================ -->
+<!-- TESTING screen                                                    -->
+<!-- ================================================================ -->
+<div id="screen-testing" class="screen">
+  <div class="status-row">
+    <div class="dot green pulse"></div>
+    <span>Recording — <span id="test-elapsed">0</span>s recorded</span>
+  </div>
+  <div class="body-text">Speak naturally. Press Stop when you're done.</div>
+  <button class="btn btn-danger" onclick="send({cmd:'stop_test'})">Stop Recording</button>
+</div>
+
+<!-- ================================================================ -->
+<!-- TEST_COMPLETE screen (after playback)                             -->
+<!-- ================================================================ -->
+<div id="screen-test-complete" class="screen">
+  <div class="status-row">
+    <div class="dot green"></div>
+    <span>How did it sound?</span>
+  </div>
+  <button class="btn btn-primary" onclick="send({cmd:'confirm_enrollment'})">Looks good — I'm done</button>
+  <button class="btn btn-secondary" onclick="send({cmd:'reenroll'})">Re-enroll</button>
+</div>
+
+<!-- ================================================================ -->
+<!-- ACTIVE_STANDBY / FILTERING screen                                 -->
+<!-- ================================================================ -->
+<div id="screen-active" class="screen">
+  <div class="status-row">
+    <div id="active-dot" class="dot green"></div>
+    <span id="active-label">Active — BlackHole 2ch</span>
+  </div>
+  <div class="stats-row">
+    <span>Similarity (last 3 s)</span>
+    <span class="stats-value" id="similarity-val">—</span>
+  </div>
+  <hr class="divider">
+  <button class="btn btn-secondary" onclick="send({cmd:'reenroll'})">Re-enroll voice…</button>
+</div>
+
+<script src="panel.js"></script>
+</body>
+</html>

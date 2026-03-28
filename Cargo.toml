@@ -1,0 +1,69 @@
+[package]
+name = "voce"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "voce"
+path = "src/main.rs"
+
+[dependencies]
+# Audio I/O — 0.17 to match voxudio's dep
+cpal = "0.17"
+
+# Speaker embedding + VAD (ONNX-backed, async)
+voxudio = { version = "0.5", features = ["model"] }
+
+# ONNX Runtime — pin to match voxudio's rc.11; add coreml feature for Apple Silicon
+ort = { version = "=2.0.0-rc.11", features = ["coreml"] }
+
+# Menubar — 0.21 uses objc2 0.6, compatible with wry 0.55 + cpal 0.17
+tray-icon = "0.21"
+muda = "0.17"
+
+# Panel WebView — 0.55 uses objc2 0.6
+wry = "0.55"
+
+# Event loop (winit 0.30 is the common integration point for tray-icon + wry)
+winit = "0.30"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Real-time audio ↔ inference thread bridge
+crossbeam-channel = "0.5"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Model download
+reqwest = { version = "0.12", features = ["stream", "rustls-tls"], default-features = false }
+futures-util = "0.3"
+
+# Test audio playback (also transitive via voxudio, but explicit for direct use)
+rodio = "0.21"
+
+# Open URLs in default browser (for BlackHole install link)
+open = "5"
+
+# PNG/image loading for tray icons
+image = { version = "0.25", default-features = false, features = ["png"] }
+
+# WAV reading for --eval mode
+hound = "3.5"
+
+# Audio resampling for --eval mode (LibriSpeech is 16 kHz; pipeline needs 22050 Hz)
+rubato = "0.15"
+
+# Utilities
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+dirs = "5"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
