@@ -59,3 +59,58 @@ impl EmbeddingWindowAccumulator {
         self.samples_since_last_emit = 0;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const WINDOW: usize = 22050;
+    const HOP: usize = 11025;
+    const CHUNK: usize = 512;
+
+    #[test]
+    fn no_window_before_first_hop_fills() {
+        let mut acc = EmbeddingWindowAccumulator::new();
+        // Push just under one hop worth of data
+        let chunk = vec![0.0f32; CHUNK];
+        let mut emitted = 0usize;
+        let mut total = 0usize;
+        while total + CHUNK <= HOP - CHUNK {
+            if acc.push_chunk(&chunk).is_some() { emitted += 1; }
+            total += CHUNK;
+        }
+        assert_eq!(emitted, 0, "no window should emit before first hop fills");
+    }
+
+    #[test]
+    fn emits_window_after_one_hop_with_enough_data() {
+        let mut acc = EmbeddingWindowAccumulator::new();
+        let chunk = vec![0.5f32; CHUNK];
+        let mut window = None;
+        // Push enough for a full window (WINDOW samples) in CHUNK-sized pieces
+        let chunks_needed = WINDOW / CHUNK + 1;
+        for _ in 0..chunks_needed {
+            if let Some(w) = acc.push_chunk(&chunk) {
+                window = Some(w);
+                break;
+            }
+        }
+        let w = window.expect("should emit a window once WINDOW samples are available");
+        assert_eq!(w.len(), WINDOW);
+    }
+
+    #[test]
+    fn emits_second_window_after_one_hop() {
+        let mut acc = EmbeddingWindowAccumulator::new();
+        let chunk = vec![0.1f32; CHUNK];
+        let mut windows = 0usize;
+        // Push 2 * WINDOW samples → expect at least 2 windows
+        let chunks_needed = (2 * WINDOW) / CHUNK + 2;
+        for _ in 0..chunks_needed {
+            if acc.push_chunk(&chunk).is_some() {
+                windows += 1;
+            }
+        }
+        assert!(windows >= 2, "expected at least 2 windows, got {windows}");
+    }
+}

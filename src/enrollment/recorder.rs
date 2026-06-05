@@ -51,3 +51,57 @@ impl EnrollmentSession {
         self.buffer
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const CHUNK: usize = 512;
+
+    fn push_n_chunks(session: &mut EnrollmentSession, n: usize, is_speech: bool) -> EnrollmentStatus {
+        let chunk = vec![0.0f32; CHUNK];
+        let mut last = EnrollmentStatus::InProgress { elapsed_s: 0, speech_s: 0 };
+        for _ in 0..n {
+            last = session.push_chunk(&chunk, is_speech);
+        }
+        last
+    }
+
+    #[test]
+    fn complete_with_sufficient_speech() {
+        let mut s = EnrollmentSession::new();
+        // Push TARGET_DURATION_SAMPLES samples all as speech
+        let total_chunks = TARGET_DURATION_SAMPLES as usize / CHUNK;
+        let status = push_n_chunks(&mut s, total_chunks, true);
+        assert!(matches!(status, EnrollmentStatus::Complete { .. }));
+    }
+
+    #[test]
+    fn invalid_with_insufficient_speech() {
+        let mut s = EnrollmentSession::new();
+        // Fill total duration but mark nothing as speech
+        let total_chunks = TARGET_DURATION_SAMPLES as usize / CHUNK;
+        let status = push_n_chunks(&mut s, total_chunks, false);
+        assert!(matches!(status, EnrollmentStatus::Invalid { reason: "insufficient_speech" }));
+    }
+
+    #[test]
+    fn in_progress_before_target_duration() {
+        let mut s = EnrollmentSession::new();
+        // Push half the target
+        let half_chunks = (TARGET_DURATION_SAMPLES as usize / CHUNK) / 2;
+        let status = push_n_chunks(&mut s, half_chunks, true);
+        assert!(matches!(status, EnrollmentStatus::InProgress { .. }));
+    }
+
+    #[test]
+    fn take_buffer_length() {
+        let mut s = EnrollmentSession::new();
+        let n = 10;
+        let chunk = vec![1.0f32; CHUNK];
+        for _ in 0..n {
+            s.push_chunk(&chunk, false);
+        }
+        assert_eq!(s.take_buffer().len(), n * CHUNK);
+    }
+}
