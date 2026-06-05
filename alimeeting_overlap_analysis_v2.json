@@ -1,0 +1,3184 @@
+{
+  "analysis_method": {
+    "min_duration": "3s",
+    "max_duration": "30s",
+    "ideal_definition": "all speakers in segment have \u22655s total solo time in meeting",
+    "overlap_definition": "2+ speakers speaking simultaneously"
+  },
+  "statistics": {
+    "total_meetings": 8,
+    "total_candidates": 245,
+    "total_ideal": 76,
+    "ideal_ratio": 0.31020408163265306
+  },
+  "per_meeting": {
+    "R8001_M8004": {
+      "total_speakers": 2,
+      "total_overlap_segments": 329,
+      "candidate_segments": 46,
+      "ideal_segments": 4,
+      "speaker_total_solo_times": {
+        "N_SPK8013": 124.55999999999946,
+        "N_SPK8014": 19.849999999999937,
+        "N_SPK8015": 0.7899999999999636,
+        "N_SPK8016": 18.210000000000036
+      }
+    },
+    "R8003_M8001": {
+      "total_speakers": 2,
+      "total_overlap_segments": 327,
+      "candidate_segments": 24,
+      "ideal_segments": 24,
+      "speaker_total_solo_times": {
+        "N_SPK8001": 58.370000000000346,
+        "N_SPK8002": 66.17000000000004,
+        "N_SPK8003": 115.99999999999991,
+        "N_SPK8004": 95.04000000000022
+      }
+    },
+    "R8007_M8010": {
+      "total_speakers": 4,
+      "total_overlap_segments": 463,
+      "candidate_segments": 127,
+      "ideal_segments": 0,
+      "speaker_total_solo_times": {
+        "N_SPK8050": 1.2299999999999045,
+        "N_SPK8054": 1.8500000000000227,
+        "N_SPK8055": 2.959999999999809,
+        "N_SPK8056": 19.73
+      }
+    },
+    "R8007_M8011": {
+      "total_speakers": 3,
+      "total_overlap_segments": 380,
+      "candidate_segments": 27,
+      "ideal_segments": 27,
+      "speaker_total_solo_times": {
+        "N_SPK8066": 64.21999999999986,
+        "N_SPK8067": 16.99000000000001,
+        "N_SPK8068": 24.13000000000011,
+        "N_SPK8069": 5.429999999999723
+      }
+    },
+    "R8008_M8013": {
+      "total_speakers": 3,
+      "total_overlap_segments": 340,
+      "candidate_segments": 12,
+      "ideal_segments": 12,
+      "speaker_total_solo_times": {
+        "N_SPK8047": 209.86999999999958,
+        "N_SPK8048": 175.96000000000086,
+        "N_SPK8049": 128.02999999999992
+      }
+    },
+    "R8009_M8018": {
+      "total_speakers": 2,
+      "total_overlap_segments": 205,
+      "candidate_segments": 1,
+      "ideal_segments": 1,
+      "speaker_total_solo_times": {
+        "N_SPK8021": 502.69000000000136,
+        "N_SPK8022": 230.60999999999984
+      }
+    },
+    "R8009_M8019": {
+      "total_speakers": 2,
+      "total_overlap_segments": 154,
+      "candidate_segments": 8,
+      "ideal_segments": 8,
+      "speaker_total_solo_times": {
+        "N_SPK8023": 719.5200000000004,
+        "N_SPK8024": 505.2600000000011
+      }
+    },
+    "R8009_M8020": {
+      "total_speakers": 2,
+      "total_overlap_segments": 192,
+      "candidate_segments": 0,
+      "ideal_segments": 0,
+      "speaker_total_solo_times": {
+        "N_SPK8025": 632.8500000000004,
+        "N_SPK8026": 483.03999999999996
+      }
+    }
+  },
+  "all_candidates": [
+    {
+      "file": "R8001_M8004",
+      "start": 129.1,
+      "end": 133.4,
+      "duration": 4.300000000000011,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 332.40000000000003,
+      "end": 335.40000000000003,
+      "duration": 3.0,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 341.1,
+      "end": 344.85,
+      "duration": 3.75,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 390.1,
+      "end": 394.15000000000003,
+      "duration": 4.050000000000011,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 412.35,
+      "end": 415.55,
+      "duration": 3.1999999999999886,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 416.6,
+      "end": 420.45000000000005,
+      "duration": 3.8500000000000227,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 428.8,
+      "end": 431.90000000000003,
+      "duration": 3.1000000000000227,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8015"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 432.90000000000003,
+      "end": 438.45000000000005,
+      "duration": 5.550000000000011,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 465.0,
+      "end": 468.45000000000005,
+      "duration": 3.4500000000000455,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 496.0,
+      "end": 504.95000000000005,
+      "duration": 8.950000000000045,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 508.65000000000003,
+      "end": 511.90000000000003,
+      "duration": 3.25,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 513.5,
+      "end": 516.75,
+      "duration": 3.25,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 523.8000000000001,
+      "end": 535.9,
+      "duration": 12.099999999999909,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 560.9,
+      "end": 564.9,
+      "duration": 4.0,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8016"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 617.0500000000001,
+      "end": 623.0,
+      "duration": 5.949999999999932,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 638.4000000000001,
+      "end": 643.35,
+      "duration": 4.949999999999932,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 649.5,
+      "end": 654.5,
+      "duration": 5.0,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 712.5,
+      "end": 715.6,
+      "duration": 3.1000000000000227,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 718.95,
+      "end": 732.6,
+      "duration": 13.649999999999977,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 741.45,
+      "end": 745.2,
+      "duration": 3.75,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8015"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 819.5,
+      "end": 824.4000000000001,
+      "duration": 4.900000000000091,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 864.95,
+      "end": 869.3000000000001,
+      "duration": 4.350000000000023,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 955.5500000000001,
+      "end": 962.0,
+      "duration": 6.449999999999932,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 973.1,
+      "end": 978.85,
+      "duration": 5.75,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 981.2,
+      "end": 985.0,
+      "duration": 3.7999999999999545,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 998.1,
+      "end": 1001.4000000000001,
+      "duration": 3.300000000000068,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 1038.15,
+      "end": 1041.2,
+      "duration": 3.0499999999999545,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 1094.05,
+      "end": 1097.7,
+      "duration": 3.650000000000091,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8016"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 1109.6000000000001,
+      "end": 1113.8500000000001,
+      "duration": 4.25,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8015"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 1120.6000000000001,
+      "end": 1127.3,
+      "duration": 6.699999999999818,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 1161.95,
+      "end": 1167.45,
+      "duration": 5.5,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 1190.9,
+      "end": 1196.75,
+      "duration": 5.849999999999909,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 1205.3,
+      "end": 1212.0,
+      "duration": 6.7000000000000455,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 1224.8,
+      "end": 1233.0,
+      "duration": 8.200000000000045,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 1242.75,
+      "end": 1246.7,
+      "duration": 3.9500000000000455,
+      "speakers": [
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 1256.4,
+      "end": 1259.8000000000002,
+      "duration": 3.400000000000091,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 1264.9,
+      "end": 1268.1000000000001,
+      "duration": 3.2000000000000455,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 1273.3000000000002,
+      "end": 1277.75,
+      "duration": 4.449999999999818,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 1286.5500000000002,
+      "end": 1292.0500000000002,
+      "duration": 5.5,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 1301.3500000000001,
+      "end": 1305.0500000000002,
+      "duration": 3.7000000000000455,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 1326.8500000000001,
+      "end": 1333.0,
+      "duration": 6.149999999999864,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 1338.2,
+      "end": 1341.8000000000002,
+      "duration": 3.6000000000001364,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 1359.8500000000001,
+      "end": 1362.95,
+      "duration": 3.099999999999909,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 1371.25,
+      "end": 1376.0500000000002,
+      "duration": 4.800000000000182,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 1471.3500000000001,
+      "end": 1474.4,
+      "duration": 3.0499999999999545,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8001_M8004",
+      "start": 1511.5500000000002,
+      "end": 1514.65,
+      "duration": 3.099999999999909,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 196.0,
+      "end": 199.65,
+      "duration": 3.6500000000000057,
+      "speakers": [
+        "N_SPK8001",
+        "N_SPK8002",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 204.45000000000002,
+      "end": 209.65,
+      "duration": 5.199999999999989,
+      "speakers": [
+        "N_SPK8001",
+        "N_SPK8002",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 421.8,
+      "end": 426.15000000000003,
+      "duration": 4.350000000000023,
+      "speakers": [
+        "N_SPK8002",
+        "N_SPK8003",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 709.8000000000001,
+      "end": 713.6500000000001,
+      "duration": 3.8500000000000227,
+      "speakers": [
+        "N_SPK8001",
+        "N_SPK8002",
+        "N_SPK8003",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 744.95,
+      "end": 748.45,
+      "duration": 3.5,
+      "speakers": [
+        "N_SPK8001",
+        "N_SPK8002",
+        "N_SPK8003",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 803.1,
+      "end": 806.8000000000001,
+      "duration": 3.7000000000000455,
+      "speakers": [
+        "N_SPK8001",
+        "N_SPK8003",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 906.35,
+      "end": 911.9000000000001,
+      "duration": 5.550000000000068,
+      "speakers": [
+        "N_SPK8001",
+        "N_SPK8002",
+        "N_SPK8003",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 957.3000000000001,
+      "end": 961.1500000000001,
+      "duration": 3.8500000000000227,
+      "speakers": [
+        "N_SPK8001",
+        "N_SPK8002",
+        "N_SPK8003",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 962.45,
+      "end": 965.45,
+      "duration": 3.0,
+      "speakers": [
+        "N_SPK8001",
+        "N_SPK8003",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 1003.4000000000001,
+      "end": 1006.6,
+      "duration": 3.199999999999932,
+      "speakers": [
+        "N_SPK8002",
+        "N_SPK8003",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 1027.8500000000001,
+      "end": 1031.45,
+      "duration": 3.599999999999909,
+      "speakers": [
+        "N_SPK8001",
+        "N_SPK8002",
+        "N_SPK8003",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 1042.3500000000001,
+      "end": 1046.3,
+      "duration": 3.949999999999818,
+      "speakers": [
+        "N_SPK8001",
+        "N_SPK8002",
+        "N_SPK8003",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 1119.8500000000001,
+      "end": 1124.05,
+      "duration": 4.199999999999818,
+      "speakers": [
+        "N_SPK8001",
+        "N_SPK8002",
+        "N_SPK8003",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 1142.8,
+      "end": 1146.15,
+      "duration": 3.3500000000001364,
+      "speakers": [
+        "N_SPK8002",
+        "N_SPK8003",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 1205.8500000000001,
+      "end": 1210.5,
+      "duration": 4.649999999999864,
+      "speakers": [
+        "N_SPK8001",
+        "N_SPK8002",
+        "N_SPK8003",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 1319.65,
+      "end": 1324.4,
+      "duration": 4.75,
+      "speakers": [
+        "N_SPK8001",
+        "N_SPK8002",
+        "N_SPK8003",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 1360.3000000000002,
+      "end": 1365.25,
+      "duration": 4.949999999999818,
+      "speakers": [
+        "N_SPK8002",
+        "N_SPK8003",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 1536.0500000000002,
+      "end": 1539.4,
+      "duration": 3.349999999999909,
+      "speakers": [
+        "N_SPK8002",
+        "N_SPK8003",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 1666.25,
+      "end": 1670.65,
+      "duration": 4.400000000000091,
+      "speakers": [
+        "N_SPK8001",
+        "N_SPK8002",
+        "N_SPK8003",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 1677.45,
+      "end": 1682.25,
+      "duration": 4.7999999999999545,
+      "speakers": [
+        "N_SPK8001",
+        "N_SPK8002",
+        "N_SPK8003",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 1690.5500000000002,
+      "end": 1694.8000000000002,
+      "duration": 4.25,
+      "speakers": [
+        "N_SPK8002",
+        "N_SPK8003",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 1797.8000000000002,
+      "end": 1801.15,
+      "duration": 3.349999999999909,
+      "speakers": [
+        "N_SPK8001",
+        "N_SPK8002",
+        "N_SPK8003",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 1891.6000000000001,
+      "end": 1894.75,
+      "duration": 3.1499999999998636,
+      "speakers": [
+        "N_SPK8001",
+        "N_SPK8002",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8003_M8001",
+      "start": 1897.8000000000002,
+      "end": 1901.0500000000002,
+      "duration": 3.25,
+      "speakers": [
+        "N_SPK8002",
+        "N_SPK8004"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 28.05,
+      "end": 31.1,
+      "duration": 3.0500000000000007,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 74.9,
+      "end": 80.0,
+      "duration": 5.099999999999994,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 87.7,
+      "end": 90.7,
+      "duration": 3.0,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 91.30000000000001,
+      "end": 95.05000000000001,
+      "duration": 3.75,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 96.30000000000001,
+      "end": 100.10000000000001,
+      "duration": 3.799999999999997,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 104.60000000000001,
+      "end": 114.7,
+      "duration": 10.099999999999994,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 124.15,
+      "end": 129.70000000000002,
+      "duration": 5.550000000000011,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 130.6,
+      "end": 139.20000000000002,
+      "duration": 8.600000000000023,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 160.85000000000002,
+      "end": 166.65,
+      "duration": 5.799999999999983,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 167.35000000000002,
+      "end": 170.85000000000002,
+      "duration": 3.5,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 180.10000000000002,
+      "end": 187.55,
+      "duration": 7.449999999999989,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 189.05,
+      "end": 196.15,
+      "duration": 7.099999999999994,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 200.75,
+      "end": 205.3,
+      "duration": 4.550000000000011,
+      "speakers": [
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 224.60000000000002,
+      "end": 228.70000000000002,
+      "duration": 4.099999999999994,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 233.4,
+      "end": 241.5,
+      "duration": 8.099999999999994,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 247.3,
+      "end": 251.5,
+      "duration": 4.199999999999989,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 262.35,
+      "end": 266.05,
+      "duration": 3.6999999999999886,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 276.8,
+      "end": 282.15000000000003,
+      "duration": 5.350000000000023,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 310.05,
+      "end": 314.05,
+      "duration": 4.0,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 324.6,
+      "end": 328.05,
+      "duration": 3.4499999999999886,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 331.65000000000003,
+      "end": 337.40000000000003,
+      "duration": 5.75,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 342.85,
+      "end": 346.05,
+      "duration": 3.1999999999999886,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 346.55,
+      "end": 352.6,
+      "duration": 6.050000000000011,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 371.15000000000003,
+      "end": 378.15000000000003,
+      "duration": 7.0,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 385.95000000000005,
+      "end": 397.5,
+      "duration": 11.549999999999955,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 398.65000000000003,
+      "end": 404.25,
+      "duration": 5.599999999999966,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 421.3,
+      "end": 431.20000000000005,
+      "duration": 9.900000000000034,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 441.8,
+      "end": 445.15000000000003,
+      "duration": 3.3500000000000227,
+      "speakers": [
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 450.25,
+      "end": 453.85,
+      "duration": 3.6000000000000227,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 467.95000000000005,
+      "end": 474.95000000000005,
+      "duration": 7.0,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 483.05,
+      "end": 487.0,
+      "duration": 3.9499999999999886,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 488.75,
+      "end": 497.20000000000005,
+      "duration": 8.450000000000045,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 502.5,
+      "end": 510.75,
+      "duration": 8.25,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 511.15000000000003,
+      "end": 514.7,
+      "duration": 3.5500000000000114,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 530.0,
+      "end": 535.5500000000001,
+      "duration": 5.550000000000068,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 542.15,
+      "end": 546.4,
+      "duration": 4.25,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 549.5,
+      "end": 553.7,
+      "duration": 4.2000000000000455,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 577.95,
+      "end": 583.15,
+      "duration": 5.199999999999932,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 585.85,
+      "end": 590.35,
+      "duration": 4.5,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 597.3000000000001,
+      "end": 605.3000000000001,
+      "duration": 8.0,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 614.85,
+      "end": 621.4000000000001,
+      "duration": 6.550000000000068,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 626.75,
+      "end": 633.4000000000001,
+      "duration": 6.650000000000091,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 643.25,
+      "end": 648.4000000000001,
+      "duration": 5.150000000000091,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 653.9000000000001,
+      "end": 667.85,
+      "duration": 13.949999999999932,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 700.0500000000001,
+      "end": 706.5,
+      "duration": 6.449999999999932,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 711.1,
+      "end": 720.25,
+      "duration": 9.149999999999977,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 722.8000000000001,
+      "end": 730.9000000000001,
+      "duration": 8.100000000000023,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 734.3000000000001,
+      "end": 738.6500000000001,
+      "duration": 4.350000000000023,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 748.4000000000001,
+      "end": 752.25,
+      "duration": 3.849999999999909,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 754.0500000000001,
+      "end": 757.3000000000001,
+      "duration": 3.25,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 771.95,
+      "end": 775.5,
+      "duration": 3.5499999999999545,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 777.75,
+      "end": 783.5500000000001,
+      "duration": 5.800000000000068,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 793.6500000000001,
+      "end": 797.3000000000001,
+      "duration": 3.6499999999999773,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 800.5,
+      "end": 808.35,
+      "duration": 7.850000000000023,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 819.85,
+      "end": 823.3000000000001,
+      "duration": 3.4500000000000455,
+      "speakers": [
+        "N_SPK8054",
+        "N_SPK8055"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 829.4000000000001,
+      "end": 834.2,
+      "duration": 4.7999999999999545,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 853.95,
+      "end": 859.25,
+      "duration": 5.2999999999999545,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 862.0,
+      "end": 865.3000000000001,
+      "duration": 3.300000000000068,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 870.8000000000001,
+      "end": 873.8000000000001,
+      "duration": 3.0,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 881.5500000000001,
+      "end": 890.0,
+      "duration": 8.449999999999932,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 895.95,
+      "end": 899.3000000000001,
+      "duration": 3.3500000000000227,
+      "speakers": [
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 902.1,
+      "end": 913.0500000000001,
+      "duration": 10.950000000000045,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 917.8000000000001,
+      "end": 923.0500000000001,
+      "duration": 5.25,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 931.7,
+      "end": 935.4000000000001,
+      "duration": 3.7000000000000455,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 936.4000000000001,
+      "end": 940.5,
+      "duration": 4.099999999999909,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 944.9000000000001,
+      "end": 949.0,
+      "duration": 4.099999999999909,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 958.1500000000001,
+      "end": 967.35,
+      "duration": 9.199999999999932,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 968.85,
+      "end": 975.45,
+      "duration": 6.600000000000023,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 980.8000000000001,
+      "end": 987.85,
+      "duration": 7.0499999999999545,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 991.6500000000001,
+      "end": 994.6500000000001,
+      "duration": 3.0,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 995.1500000000001,
+      "end": 1001.8000000000001,
+      "duration": 6.649999999999977,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1007.5500000000001,
+      "end": 1017.4000000000001,
+      "duration": 9.850000000000023,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1021.0,
+      "end": 1026.0,
+      "duration": 5.0,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1030.7,
+      "end": 1034.65,
+      "duration": 3.9500000000000455,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1045.1000000000001,
+      "end": 1048.6000000000001,
+      "duration": 3.5,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1050.7,
+      "end": 1055.55,
+      "duration": 4.849999999999909,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1067.9,
+      "end": 1071.2,
+      "duration": 3.2999999999999545,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1076.9,
+      "end": 1081.15,
+      "duration": 4.25,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1082.2,
+      "end": 1085.9,
+      "duration": 3.7000000000000455,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1088.2,
+      "end": 1093.15,
+      "duration": 4.9500000000000455,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1103.8500000000001,
+      "end": 1108.8500000000001,
+      "duration": 5.0,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1111.95,
+      "end": 1119.25,
+      "duration": 7.2999999999999545,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1127.1000000000001,
+      "end": 1130.55,
+      "duration": 3.449999999999818,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1137.65,
+      "end": 1143.2,
+      "duration": 5.5499999999999545,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1145.4,
+      "end": 1149.15,
+      "duration": 3.75,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1153.5,
+      "end": 1160.65,
+      "duration": 7.150000000000091,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1172.95,
+      "end": 1176.3500000000001,
+      "duration": 3.400000000000091,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1183.95,
+      "end": 1187.3,
+      "duration": 3.349999999999909,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1191.45,
+      "end": 1197.3500000000001,
+      "duration": 5.900000000000091,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1225.2,
+      "end": 1233.15,
+      "duration": 7.9500000000000455,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1246.75,
+      "end": 1250.1000000000001,
+      "duration": 3.3500000000001364,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1251.95,
+      "end": 1256.45,
+      "duration": 4.5,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1261.6000000000001,
+      "end": 1265.3500000000001,
+      "duration": 3.75,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1269.3500000000001,
+      "end": 1275.8000000000002,
+      "duration": 6.4500000000000455,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1277.0,
+      "end": 1281.4,
+      "duration": 4.400000000000091,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1292.75,
+      "end": 1300.45,
+      "duration": 7.7000000000000455,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1317.15,
+      "end": 1327.3000000000002,
+      "duration": 10.150000000000091,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1327.7,
+      "end": 1331.2,
+      "duration": 3.5,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1337.95,
+      "end": 1342.9,
+      "duration": 4.9500000000000455,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1354.25,
+      "end": 1357.6000000000001,
+      "duration": 3.3500000000001364,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1373.0,
+      "end": 1379.0500000000002,
+      "duration": 6.050000000000182,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1379.75,
+      "end": 1383.0500000000002,
+      "duration": 3.300000000000182,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1396.9,
+      "end": 1401.5,
+      "duration": 4.599999999999909,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1413.75,
+      "end": 1423.1000000000001,
+      "duration": 9.350000000000136,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1427.45,
+      "end": 1432.0,
+      "duration": 4.5499999999999545,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1446.6000000000001,
+      "end": 1455.8000000000002,
+      "duration": 9.200000000000045,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1465.75,
+      "end": 1469.45,
+      "duration": 3.7000000000000455,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1470.7,
+      "end": 1478.3500000000001,
+      "duration": 7.650000000000091,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1479.0,
+      "end": 1482.8500000000001,
+      "duration": 3.8500000000001364,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1490.3500000000001,
+      "end": 1494.5500000000002,
+      "duration": 4.2000000000000455,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1510.4,
+      "end": 1516.65,
+      "duration": 6.25,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1518.95,
+      "end": 1522.7,
+      "duration": 3.75,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1524.8000000000002,
+      "end": 1529.45,
+      "duration": 4.649999999999864,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1552.0500000000002,
+      "end": 1565.65,
+      "duration": 13.599999999999909,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1569.8000000000002,
+      "end": 1573.1000000000001,
+      "duration": 3.2999999999999545,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1594.3000000000002,
+      "end": 1599.3500000000001,
+      "duration": 5.0499999999999545,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1601.7,
+      "end": 1606.7,
+      "duration": 5.0,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1608.0500000000002,
+      "end": 1619.7,
+      "duration": 11.649999999999864,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1628.0500000000002,
+      "end": 1632.5,
+      "duration": 4.449999999999818,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1656.75,
+      "end": 1660.15,
+      "duration": 3.400000000000091,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1668.3000000000002,
+      "end": 1671.75,
+      "duration": 3.449999999999818,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1672.8000000000002,
+      "end": 1677.5500000000002,
+      "duration": 4.75,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1684.0,
+      "end": 1687.5,
+      "duration": 3.5,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1713.65,
+      "end": 1717.7,
+      "duration": 4.0499999999999545,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1771.6000000000001,
+      "end": 1775.0,
+      "duration": 3.3999999999998636,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1775.7,
+      "end": 1781.75,
+      "duration": 6.0499999999999545,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8010",
+      "start": 1804.95,
+      "end": 1809.8000000000002,
+      "duration": 4.850000000000136,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "ideal": false
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 127.9,
+      "end": 131.45000000000002,
+      "duration": 3.5500000000000114,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8067",
+        "N_SPK8068"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 441.70000000000005,
+      "end": 445.65000000000003,
+      "duration": 3.9499999999999886,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8067",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 555.1,
+      "end": 560.25,
+      "duration": 5.149999999999977,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8067",
+        "N_SPK8068"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 578.8000000000001,
+      "end": 581.8000000000001,
+      "duration": 3.0,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8067",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 708.0500000000001,
+      "end": 714.1,
+      "duration": 6.0499999999999545,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8067",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 864.1,
+      "end": 867.25,
+      "duration": 3.1499999999999773,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8067",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 932.25,
+      "end": 935.45,
+      "duration": 3.2000000000000455,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8067",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 965.1,
+      "end": 969.0,
+      "duration": 3.8999999999999773,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8067",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 981.7,
+      "end": 985.0,
+      "duration": 3.2999999999999545,
+      "speakers": [
+        "N_SPK8067",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 1053.05,
+      "end": 1056.3,
+      "duration": 3.25,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 1183.3,
+      "end": 1189.55,
+      "duration": 6.25,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8067",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 1212.65,
+      "end": 1215.8,
+      "duration": 3.1499999999998636,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8067",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 1255.15,
+      "end": 1259.0500000000002,
+      "duration": 3.900000000000091,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8067",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 1267.45,
+      "end": 1271.7,
+      "duration": 4.25,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8067",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 1307.7,
+      "end": 1311.3000000000002,
+      "duration": 3.6000000000001364,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8067",
+        "N_SPK8068"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 1346.5500000000002,
+      "end": 1349.65,
+      "duration": 3.099999999999909,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8067",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 1406.0500000000002,
+      "end": 1409.5,
+      "duration": 3.449999999999818,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8067",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 1485.0500000000002,
+      "end": 1491.15,
+      "duration": 6.099999999999909,
+      "speakers": [
+        "N_SPK8067",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 1507.3000000000002,
+      "end": 1512.5500000000002,
+      "duration": 5.25,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8067",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 1527.4,
+      "end": 1534.3500000000001,
+      "duration": 6.9500000000000455,
+      "speakers": [
+        "N_SPK8067",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 1562.5500000000002,
+      "end": 1567.3000000000002,
+      "duration": 4.75,
+      "speakers": [
+        "N_SPK8067",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 1578.0,
+      "end": 1581.75,
+      "duration": 3.75,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8067",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 1593.1000000000001,
+      "end": 1599.2,
+      "duration": 6.099999999999909,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8067",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 1644.8000000000002,
+      "end": 1648.3000000000002,
+      "duration": 3.5,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8067",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 1689.6000000000001,
+      "end": 1693.95,
+      "duration": 4.349999999999909,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 1756.7,
+      "end": 1760.2,
+      "duration": 3.5,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8068",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8007_M8011",
+      "start": 1789.5,
+      "end": 1792.7,
+      "duration": 3.2000000000000455,
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8067",
+        "N_SPK8069"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8008_M8013",
+      "start": 759.7,
+      "end": 763.7,
+      "duration": 4.0,
+      "speakers": [
+        "N_SPK8047",
+        "N_SPK8048",
+        "N_SPK8049"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8008_M8013",
+      "start": 780.4000000000001,
+      "end": 784.3000000000001,
+      "duration": 3.8999999999999773,
+      "speakers": [
+        "N_SPK8047",
+        "N_SPK8048",
+        "N_SPK8049"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8008_M8013",
+      "start": 985.1500000000001,
+      "end": 988.25,
+      "duration": 3.099999999999909,
+      "speakers": [
+        "N_SPK8047",
+        "N_SPK8049"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8008_M8013",
+      "start": 1020.7,
+      "end": 1024.3500000000001,
+      "duration": 3.650000000000091,
+      "speakers": [
+        "N_SPK8047",
+        "N_SPK8048",
+        "N_SPK8049"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8008_M8013",
+      "start": 1068.25,
+      "end": 1071.8,
+      "duration": 3.5499999999999545,
+      "speakers": [
+        "N_SPK8047",
+        "N_SPK8048",
+        "N_SPK8049"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8008_M8013",
+      "start": 1264.6000000000001,
+      "end": 1268.15,
+      "duration": 3.5499999999999545,
+      "speakers": [
+        "N_SPK8048",
+        "N_SPK8049"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8008_M8013",
+      "start": 1332.3500000000001,
+      "end": 1336.5500000000002,
+      "duration": 4.2000000000000455,
+      "speakers": [
+        "N_SPK8047",
+        "N_SPK8048",
+        "N_SPK8049"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8008_M8013",
+      "start": 1391.45,
+      "end": 1395.45,
+      "duration": 4.0,
+      "speakers": [
+        "N_SPK8047",
+        "N_SPK8048",
+        "N_SPK8049"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8008_M8013",
+      "start": 1693.25,
+      "end": 1696.9,
+      "duration": 3.650000000000091,
+      "speakers": [
+        "N_SPK8047",
+        "N_SPK8048"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8008_M8013",
+      "start": 1910.65,
+      "end": 1913.65,
+      "duration": 3.0,
+      "speakers": [
+        "N_SPK8047",
+        "N_SPK8048",
+        "N_SPK8049"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8008_M8013",
+      "start": 2071.35,
+      "end": 2074.35,
+      "duration": 3.0,
+      "speakers": [
+        "N_SPK8047",
+        "N_SPK8048",
+        "N_SPK8049"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8008_M8013",
+      "start": 2085.15,
+      "end": 2088.35,
+      "duration": 3.199999999999818,
+      "speakers": [
+        "N_SPK8047",
+        "N_SPK8048",
+        "N_SPK8049"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8009_M8018",
+      "start": 1021.6,
+      "end": 1024.95,
+      "duration": 3.3500000000000227,
+      "speakers": [
+        "N_SPK8021",
+        "N_SPK8022"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8009_M8019",
+      "start": 578.2,
+      "end": 584.25,
+      "duration": 6.0499999999999545,
+      "speakers": [
+        "N_SPK8023",
+        "N_SPK8024"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8009_M8019",
+      "start": 622.95,
+      "end": 626.0500000000001,
+      "duration": 3.1000000000000227,
+      "speakers": [
+        "N_SPK8023",
+        "N_SPK8024"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8009_M8019",
+      "start": 690.6,
+      "end": 695.3000000000001,
+      "duration": 4.7000000000000455,
+      "speakers": [
+        "N_SPK8023",
+        "N_SPK8024"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8009_M8019",
+      "start": 857.35,
+      "end": 861.85,
+      "duration": 4.5,
+      "speakers": [
+        "N_SPK8023",
+        "N_SPK8024"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8009_M8019",
+      "start": 1301.65,
+      "end": 1305.0,
+      "duration": 3.349999999999909,
+      "speakers": [
+        "N_SPK8023",
+        "N_SPK8024"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8009_M8019",
+      "start": 1493.95,
+      "end": 1498.8000000000002,
+      "duration": 4.850000000000136,
+      "speakers": [
+        "N_SPK8023",
+        "N_SPK8024"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8009_M8019",
+      "start": 1807.65,
+      "end": 1810.8500000000001,
+      "duration": 3.2000000000000455,
+      "speakers": [
+        "N_SPK8023",
+        "N_SPK8024"
+      ],
+      "ideal": true
+    },
+    {
+      "file": "R8009_M8019",
+      "start": 1919.45,
+      "end": 1922.6000000000001,
+      "duration": 3.150000000000091,
+      "speakers": [
+        "N_SPK8023",
+        "N_SPK8024"
+      ],
+      "ideal": true
+    }
+  ]
+}

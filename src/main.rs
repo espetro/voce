@@ -1,6 +1,7 @@
 mod app_state;
 mod audio;
 mod config;
+mod driver;
 mod enrollment;
 mod eval;
 mod events;
@@ -519,7 +520,34 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                 let proxy2 = self.proxy.clone();
                 self.tokio.spawn(async move {
                     use rodio::buffer::SamplesBuffer;
-                    match rodio::OutputStreamBuilder::open_default_stream() {
+                    use rodio::cpal::traits::{DeviceTrait, HostTrait};
+
+                    // Prefer an explicit non-virtual speaker so playback is
+                    // audible even when Voce Microphone / BlackHole is the
+                    // system default output device.
+                    let host = rodio::cpal::default_host();
+                    let speaker = host.output_devices().ok().and_then(|mut devs| {
+                        devs.find(|d| {
+                            d.name()
+                                .map(|n| {
+                                    let n = n.to_lowercase();
+                                    !n.contains("blackhole") && !n.contains("voce")
+                                })
+                                .unwrap_or(false)
+                        })
+                    });
+
+                    let stream_result = if let Some(device) = speaker {
+                        info!("Test playback via: {}", device.name().unwrap_or_default());
+                        rodio::OutputStreamBuilder::from_device(device)
+                            .map_err(|e| anyhow::anyhow!("{e}"))
+                            .and_then(|b| b.open_stream().map_err(|e| anyhow::anyhow!("{e}")))
+                    } else {
+                        rodio::OutputStreamBuilder::open_default_stream()
+                            .map_err(|e| anyhow::anyhow!("{e}"))
+                    };
+
+                    match stream_result {
                         Ok(stream) => {
                             let sink = rodio::Sink::connect_new(stream.mixer());
                             sink.append(SamplesBuffer::new(1u16, 22050u32, samples));
@@ -579,27 +607,65 @@ fn load_icon_from_png(png_bytes: &[u8]) -> tray_icon::Icon {
 // Entry point
 // ---------------------------------------------------------------------------
 
+/// Return the value of a named flag from the argument list, e.g.
+/// `flag_val(&args, "--output")` → `Some("/tmp/out.wav")`.
+fn flag_val<'a>(args: &'a [String], flag: &str) -> Option<&'a str> {
+    args.iter()
+        .position(|a| a == flag)
+        .and_then(|i| args.get(i + 1))
+        .map(String::as_str)
+}
+
+fn init_eval_logging() {
+    tracing_subscriber::fmt()
+        .with_writer(std::io::stderr)
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("voce=warn")),
+        )
+        .init();
+}
+
+fn build_rt() -> anyhow::Result<tokio::runtime::Runtime> {
+    Ok(tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(2)
+        .enable_all()
+        .build()?)
+}
+
 fn main() -> anyhow::Result<()> {
-    // --- Early intercept: --eval mode bypasses all GUI initialisation ---
+    // --- Early intercepts: eval modes bypass all GUI initialisation ---
     let args: Vec<String> = std::env::args().collect();
-    if let Some(pos) = args.iter().position(|a| a == "--eval") {
-        let wav_path = args
-            .get(pos + 1)
-            .ok_or_else(|| anyhow::anyhow!("--eval requires a WAV file path"))?;
-        // Minimal stderr-only logging keeps stdout clean for JSONL output
-        tracing_subscriber::fmt()
-            .with_writer(std::io::stderr)
-            .with_env_filter(
-                tracing_subscriber::EnvFilter::try_from_default_env()
-                    .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("voce=warn")),
-            )
-            .init();
-        let rt = tokio::runtime::Builder::new_multi_thread()
-            .worker_threads(2)
-            .enable_all()
-            .build()?;
-        let code = rt.block_on(eval::run_eval(std::path::PathBuf::from(wav_path)))?;
+
+    // --eval-enroll <wav> [--eval-enroll-out <path>]
+    if args.iter().any(|a| a == "--eval-enroll") {
+        let wav = flag_val(&args, "--eval-enroll")
+            .ok_or_else(|| anyhow::anyhow!("--eval-enroll requires a WAV file path"))?;
+        let out = flag_val(&args, "--eval-enroll-out").map(std::path::PathBuf::from);
+        init_eval_logging();
+        let rt = build_rt()?;
+        let code = rt.block_on(eval::run_enroll_from_wav(std::path::PathBuf::from(wav), out))?;
         std::process::exit(code);
+    }
+
+    // --eval <wav> [--output <path>] [--enrollment <path>]
+    if let Some(wav) = flag_val(&args, "--eval") {
+        let output_path     = flag_val(&args, "--output").map(std::path::PathBuf::from);
+        let enrollment_path = flag_val(&args, "--enrollment").map(std::path::PathBuf::from);
+        init_eval_logging();
+        let rt = build_rt()?;
+        let code = rt.block_on(eval::run_eval(
+            std::path::PathBuf::from(wav),
+            output_path,
+            enrollment_path,
+        ))?;
+        std::process::exit(code);
+    }
+
+    // Install bundled VoceAudio HAL driver if not already present.
+    // Non-fatal: if it fails the user falls back to BlackHole.
+    if let Err(e) = driver::ensure_installed() {
+        tracing::warn!("VoceAudio driver install skipped: {e}");
     }
 
     let voce_dir = config::voce_dir();

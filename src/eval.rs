@@ -1,10 +1,14 @@
-//! Offline evaluation mode: `voce --eval <wav_path>`
+//! Offline evaluation modes.
 //!
-//! Loads the enrolled embedding and ONNX models, then feeds a WAV file through
-//! the exact same VAD → embedder → cosine-similarity → gate pipeline used in
-//! live filtering.  Emits one JSONL line per embedding window to stdout.
+//! `voce --eval <wav> [--output <path>] [--enrollment <path>]`
+//!   Feeds a WAV through the VAD → embedder → gate pipeline; emits JSONL per
+//!   window; optionally writes a filtered WAV where blocked chunks are silenced.
 //!
-//! Exit codes: 0 on success, 1 on any error (missing file, bad WAV, model failure).
+//! `voce --eval-enroll <wav> [--eval-enroll-out <path>]`
+//!   Computes a speaker embedding from a WAV and saves it as the enrolled
+//!   profile (same format as the GUI enrollment flow).
+//!
+//! Exit codes: 0 on success, 1 on any error.
 
 use anyhow::{Context, Result, bail};
 use std::path::PathBuf;
@@ -12,26 +16,38 @@ use std::path::PathBuf;
 use crate::{
     audio::buffer::EmbeddingWindowAccumulator,
     config,
-    enrollment::profile::VoiceProfile,
+    enrollment::profile::{VoiceProfile, compute_profile},
     filter::gate::SlidingVoteGate,
     inference::process_window,
-    model::ModelSet,
+    model::{ModelSet, VadWrapper},
 };
 
 const CHUNK_SIZE: usize = 512;
 const HOP: usize = 11025;
 const SAMPLE_RATE: f32 = 22050.0;
 
-/// Entry point for `--eval` mode.  Returns 0 on success, 1 on any error.
-pub async fn run_eval(wav_path: PathBuf) -> Result<i32> {
-    // --- Validate path early for a clean error message ---
+// ---------------------------------------------------------------------------
+// Public entry points
+// ---------------------------------------------------------------------------
+
+/// Entry point for `--eval` mode.
+///
+/// Runs the full pipeline on `wav_path`.  If `output_path` is given, writes a
+/// filtered WAV where chunks that did not pass the gate are replaced with
+/// silence.  If `enrollment_path` is given it is used instead of the default
+/// `~/.voce/enrolled_embedding.json`.
+pub async fn run_eval(
+    wav_path: PathBuf,
+    output_path: Option<PathBuf>,
+    enrollment_path: Option<PathBuf>,
+) -> Result<i32> {
     if !wav_path.exists() {
         eprintln!("error: file not found: {}", wav_path.display());
         return Ok(1);
     }
 
     // --- Load enrolled embedding ---
-    let profile_path = config::enrolled_embedding_path();
+    let profile_path = enrollment_path.unwrap_or_else(config::enrolled_embedding_path);
     let profile = VoiceProfile::load(&profile_path).with_context(|| {
         format!(
             "failed to load enrolled embedding from {} — run enrollment in the GUI first",
@@ -62,18 +78,35 @@ pub async fn run_eval(wav_path: PathBuf) -> Result<i32> {
     let mut gate = SlidingVoteGate::new(cfg.threshold, cfg.vote_window);
     let mut window_index: u64 = 0;
 
+    // Gate state between windows: fail-open (true = passing through)
+    let mut current_gate_pass = true;
+
+    // Pre-allocate filtered audio buffer only when output is requested
+    let mut filtered: Vec<f32> = if output_path.is_some() {
+        Vec::with_capacity(samples.len())
+    } else {
+        Vec::new()
+    };
+
     for chunk in samples.chunks(CHUNK_SIZE) {
+        let is_silent_chunk = VadWrapper::is_silence_fast(chunk);
+
+        // Always push every chunk (including silent) so the accumulator's window
+        // positions stay aligned with wall-clock audio time.
         if let Some(window) = accumulator.push_chunk(chunk) {
             let t_s = window_index as f32 * HOP as f32 / SAMPLE_RATE;
 
             match process_window(&window, &mut models, &enrolled, &mut gate).await {
                 Ok(None) => {
-                    // Silent window — pass through, emit with similarity 0
+                    // VAD classified window as non-speech (silence or noise).
+                    // Preserve gate state: enrolled-speaker pauses stay open,
+                    // other-speaker pauses stay closed.
                     println!(
-                        r#"{{"t_s":{t_s:.3},"similarity":0.000,"passed":true}}"#
+                        r#"{{"t_s":{t_s:.3},"similarity":0.000,"passed":{current_gate_pass}}}"#
                     );
                 }
                 Ok(Some(r)) => {
+                    current_gate_pass = r.passed;
                     println!(
                         r#"{{"t_s":{t_s:.3},"similarity":{sim:.3},"passed":{pass}}}"#,
                         sim = r.similarity,
@@ -88,9 +121,78 @@ pub async fn run_eval(wav_path: PathBuf) -> Result<i32> {
 
             window_index += 1;
         }
+
+        // Collect filtered audio: silent chunks always output silence regardless of
+        // gate state; non-silent chunks follow the gate.
+        if output_path.is_some() {
+            if is_silent_chunk || !current_gate_pass {
+                filtered.extend(std::iter::repeat(0.0f32).take(chunk.len()));
+            } else {
+                filtered.extend_from_slice(chunk);
+            }
+        }
+    }
+
+    if let Some(ref path) = output_path {
+        write_wav_f32(path, &filtered, 22050)?;
     }
 
     Ok(0)
+}
+
+/// Entry point for `--eval-enroll` mode.
+///
+/// Computes a speaker embedding from `wav_path` and saves it to `out_path`
+/// (defaults to `~/.voce/enrolled_embedding.json`).
+pub async fn run_enroll_from_wav(wav_path: PathBuf, out_path: Option<PathBuf>) -> Result<i32> {
+    if !wav_path.exists() {
+        eprintln!("error: file not found: {}", wav_path.display());
+        return Ok(1);
+    }
+
+    let samples = load_wav_as_f32_22050(&wav_path)?;
+
+    let models_dir = config::models_dir();
+    let mut models = ModelSet::load(&models_dir, |_| {})
+        .await
+        .context("failed to load ONNX models")?;
+
+    let profile = compute_profile(&mut models.embedder, &[samples])
+        .await
+        .context("failed to compute embedding from WAV")?;
+
+    let save_path = out_path.unwrap_or_else(config::enrolled_embedding_path);
+    profile
+        .save(&save_path)
+        .with_context(|| format!("failed to save embedding to {}", save_path.display()))?;
+
+    eprintln!(
+        "Enrollment saved: {} (dim={})",
+        save_path.display(),
+        profile.dim
+    );
+    Ok(0)
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/// Write mono f32 samples to a WAV file.
+fn write_wav_f32(path: &PathBuf, samples: &[f32], sample_rate: u32) -> Result<()> {
+    let spec = hound::WavSpec {
+        channels: 1,
+        sample_rate,
+        bits_per_sample: 32,
+        sample_format: hound::SampleFormat::Float,
+    };
+    let mut writer = hound::WavWriter::create(path, spec)
+        .with_context(|| format!("cannot create output WAV: {}", path.display()))?;
+    for &s in samples {
+        writer.write_sample(s)?;
+    }
+    writer.finalize()?;
+    Ok(())
 }
 
 /// Load a WAV file as mono f32 samples at 22050 Hz.

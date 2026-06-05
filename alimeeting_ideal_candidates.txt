@@ -1,0 +1,459 @@
+# AliMeeting IDEAL Candidate Segments
+# Total: 76 ideal segments
+
+1. R8001_M8004
+   Time: 560.90s - 564.90s (4.00s)
+   Audio: Eval_Ali_far/audio_dir/R8001_M8004.wav
+   Speakers: ['N_SPK8013', 'N_SPK8014', 'N_SPK8016']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8001_M8004.wav -ss 560.90 -t 4.00 -ac 1 segment_0001.wav
+
+2. R8001_M8004
+   Time: 1094.05s - 1097.70s (3.65s)
+   Audio: Eval_Ali_far/audio_dir/R8001_M8004.wav
+   Speakers: ['N_SPK8013', 'N_SPK8014', 'N_SPK8016']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8001_M8004.wav -ss 1094.05 -t 3.65 -ac 1 segment_0002.wav
+
+3. R8001_M8004
+   Time: 1338.20s - 1341.80s (3.60s)
+   Audio: Eval_Ali_far/audio_dir/R8001_M8004.wav
+   Speakers: ['N_SPK8013', 'N_SPK8014']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8001_M8004.wav -ss 1338.20 -t 3.60 -ac 1 segment_0003.wav
+
+4. R8001_M8004
+   Time: 1511.55s - 1514.65s (3.10s)
+   Audio: Eval_Ali_far/audio_dir/R8001_M8004.wav
+   Speakers: ['N_SPK8013', 'N_SPK8014']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8001_M8004.wav -ss 1511.55 -t 3.10 -ac 1 segment_0004.wav
+
+5. R8003_M8001
+   Time: 196.00s - 199.65s (3.65s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8001', 'N_SPK8002', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 196.00 -t 3.65 -ac 1 segment_0005.wav
+
+6. R8003_M8001
+   Time: 204.45s - 209.65s (5.20s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8001', 'N_SPK8002', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 204.45 -t 5.20 -ac 1 segment_0006.wav
+
+7. R8003_M8001
+   Time: 421.80s - 426.15s (4.35s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8002', 'N_SPK8003', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 421.80 -t 4.35 -ac 1 segment_0007.wav
+
+8. R8003_M8001
+   Time: 709.80s - 713.65s (3.85s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8001', 'N_SPK8002', 'N_SPK8003', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 709.80 -t 3.85 -ac 1 segment_0008.wav
+
+9. R8003_M8001
+   Time: 744.95s - 748.45s (3.50s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8001', 'N_SPK8002', 'N_SPK8003', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 744.95 -t 3.50 -ac 1 segment_0009.wav
+
+10. R8003_M8001
+   Time: 803.10s - 806.80s (3.70s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8001', 'N_SPK8003', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 803.10 -t 3.70 -ac 1 segment_0010.wav
+
+11. R8003_M8001
+   Time: 906.35s - 911.90s (5.55s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8001', 'N_SPK8002', 'N_SPK8003', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 906.35 -t 5.55 -ac 1 segment_0011.wav
+
+12. R8003_M8001
+   Time: 957.30s - 961.15s (3.85s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8001', 'N_SPK8002', 'N_SPK8003', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 957.30 -t 3.85 -ac 1 segment_0012.wav
+
+13. R8003_M8001
+   Time: 962.45s - 965.45s (3.00s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8001', 'N_SPK8003', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 962.45 -t 3.00 -ac 1 segment_0013.wav
+
+14. R8003_M8001
+   Time: 1003.40s - 1006.60s (3.20s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8002', 'N_SPK8003', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 1003.40 -t 3.20 -ac 1 segment_0014.wav
+
+15. R8003_M8001
+   Time: 1027.85s - 1031.45s (3.60s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8001', 'N_SPK8002', 'N_SPK8003', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 1027.85 -t 3.60 -ac 1 segment_0015.wav
+
+16. R8003_M8001
+   Time: 1042.35s - 1046.30s (3.95s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8001', 'N_SPK8002', 'N_SPK8003', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 1042.35 -t 3.95 -ac 1 segment_0016.wav
+
+17. R8003_M8001
+   Time: 1119.85s - 1124.05s (4.20s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8001', 'N_SPK8002', 'N_SPK8003', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 1119.85 -t 4.20 -ac 1 segment_0017.wav
+
+18. R8003_M8001
+   Time: 1142.80s - 1146.15s (3.35s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8002', 'N_SPK8003', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 1142.80 -t 3.35 -ac 1 segment_0018.wav
+
+19. R8003_M8001
+   Time: 1205.85s - 1210.50s (4.65s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8001', 'N_SPK8002', 'N_SPK8003', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 1205.85 -t 4.65 -ac 1 segment_0019.wav
+
+20. R8003_M8001
+   Time: 1319.65s - 1324.40s (4.75s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8001', 'N_SPK8002', 'N_SPK8003', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 1319.65 -t 4.75 -ac 1 segment_0020.wav
+
+21. R8003_M8001
+   Time: 1360.30s - 1365.25s (4.95s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8002', 'N_SPK8003', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 1360.30 -t 4.95 -ac 1 segment_0021.wav
+
+22. R8003_M8001
+   Time: 1536.05s - 1539.40s (3.35s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8002', 'N_SPK8003', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 1536.05 -t 3.35 -ac 1 segment_0022.wav
+
+23. R8003_M8001
+   Time: 1666.25s - 1670.65s (4.40s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8001', 'N_SPK8002', 'N_SPK8003', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 1666.25 -t 4.40 -ac 1 segment_0023.wav
+
+24. R8003_M8001
+   Time: 1677.45s - 1682.25s (4.80s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8001', 'N_SPK8002', 'N_SPK8003', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 1677.45 -t 4.80 -ac 1 segment_0024.wav
+
+25. R8003_M8001
+   Time: 1690.55s - 1694.80s (4.25s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8002', 'N_SPK8003', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 1690.55 -t 4.25 -ac 1 segment_0025.wav
+
+26. R8003_M8001
+   Time: 1797.80s - 1801.15s (3.35s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8001', 'N_SPK8002', 'N_SPK8003', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 1797.80 -t 3.35 -ac 1 segment_0026.wav
+
+27. R8003_M8001
+   Time: 1891.60s - 1894.75s (3.15s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8001', 'N_SPK8002', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 1891.60 -t 3.15 -ac 1 segment_0027.wav
+
+28. R8003_M8001
+   Time: 1897.80s - 1901.05s (3.25s)
+   Audio: Eval_Ali_far/audio_dir/R8003_M8001.wav
+   Speakers: ['N_SPK8002', 'N_SPK8004']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8003_M8001.wav -ss 1897.80 -t 3.25 -ac 1 segment_0028.wav
+
+29. R8007_M8011
+   Time: 127.90s - 131.45s (3.55s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8067', 'N_SPK8068']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 127.90 -t 3.55 -ac 1 segment_0029.wav
+
+30. R8007_M8011
+   Time: 441.70s - 445.65s (3.95s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8067', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 441.70 -t 3.95 -ac 1 segment_0030.wav
+
+31. R8007_M8011
+   Time: 555.10s - 560.25s (5.15s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8067', 'N_SPK8068']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 555.10 -t 5.15 -ac 1 segment_0031.wav
+
+32. R8007_M8011
+   Time: 578.80s - 581.80s (3.00s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8067', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 578.80 -t 3.00 -ac 1 segment_0032.wav
+
+33. R8007_M8011
+   Time: 708.05s - 714.10s (6.05s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8067', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 708.05 -t 6.05 -ac 1 segment_0033.wav
+
+34. R8007_M8011
+   Time: 864.10s - 867.25s (3.15s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8067', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 864.10 -t 3.15 -ac 1 segment_0034.wav
+
+35. R8007_M8011
+   Time: 932.25s - 935.45s (3.20s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8067', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 932.25 -t 3.20 -ac 1 segment_0035.wav
+
+36. R8007_M8011
+   Time: 965.10s - 969.00s (3.90s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8067', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 965.10 -t 3.90 -ac 1 segment_0036.wav
+
+37. R8007_M8011
+   Time: 981.70s - 985.00s (3.30s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8067', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 981.70 -t 3.30 -ac 1 segment_0037.wav
+
+38. R8007_M8011
+   Time: 1053.05s - 1056.30s (3.25s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 1053.05 -t 3.25 -ac 1 segment_0038.wav
+
+39. R8007_M8011
+   Time: 1183.30s - 1189.55s (6.25s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8067', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 1183.30 -t 6.25 -ac 1 segment_0039.wav
+
+40. R8007_M8011
+   Time: 1212.65s - 1215.80s (3.15s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8067', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 1212.65 -t 3.15 -ac 1 segment_0040.wav
+
+41. R8007_M8011
+   Time: 1255.15s - 1259.05s (3.90s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8067', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 1255.15 -t 3.90 -ac 1 segment_0041.wav
+
+42. R8007_M8011
+   Time: 1267.45s - 1271.70s (4.25s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8067', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 1267.45 -t 4.25 -ac 1 segment_0042.wav
+
+43. R8007_M8011
+   Time: 1307.70s - 1311.30s (3.60s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8067', 'N_SPK8068']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 1307.70 -t 3.60 -ac 1 segment_0043.wav
+
+44. R8007_M8011
+   Time: 1346.55s - 1349.65s (3.10s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8067', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 1346.55 -t 3.10 -ac 1 segment_0044.wav
+
+45. R8007_M8011
+   Time: 1406.05s - 1409.50s (3.45s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8067', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 1406.05 -t 3.45 -ac 1 segment_0045.wav
+
+46. R8007_M8011
+   Time: 1485.05s - 1491.15s (6.10s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8067', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 1485.05 -t 6.10 -ac 1 segment_0046.wav
+
+47. R8007_M8011
+   Time: 1507.30s - 1512.55s (5.25s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8067', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 1507.30 -t 5.25 -ac 1 segment_0047.wav
+
+48. R8007_M8011
+   Time: 1527.40s - 1534.35s (6.95s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8067', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 1527.40 -t 6.95 -ac 1 segment_0048.wav
+
+49. R8007_M8011
+   Time: 1562.55s - 1567.30s (4.75s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8067', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 1562.55 -t 4.75 -ac 1 segment_0049.wav
+
+50. R8007_M8011
+   Time: 1578.00s - 1581.75s (3.75s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8067', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 1578.00 -t 3.75 -ac 1 segment_0050.wav
+
+51. R8007_M8011
+   Time: 1593.10s - 1599.20s (6.10s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8067', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 1593.10 -t 6.10 -ac 1 segment_0051.wav
+
+52. R8007_M8011
+   Time: 1644.80s - 1648.30s (3.50s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8067', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 1644.80 -t 3.50 -ac 1 segment_0052.wav
+
+53. R8007_M8011
+   Time: 1689.60s - 1693.95s (4.35s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 1689.60 -t 4.35 -ac 1 segment_0053.wav
+
+54. R8007_M8011
+   Time: 1756.70s - 1760.20s (3.50s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8068', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 1756.70 -t 3.50 -ac 1 segment_0054.wav
+
+55. R8007_M8011
+   Time: 1789.50s - 1792.70s (3.20s)
+   Audio: Eval_Ali_far/audio_dir/R8007_M8011.wav
+   Speakers: ['N_SPK8066', 'N_SPK8067', 'N_SPK8069']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8007_M8011.wav -ss 1789.50 -t 3.20 -ac 1 segment_0055.wav
+
+56. R8008_M8013
+   Time: 759.70s - 763.70s (4.00s)
+   Audio: Eval_Ali_far/audio_dir/R8008_M8013.wav
+   Speakers: ['N_SPK8047', 'N_SPK8048', 'N_SPK8049']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8008_M8013.wav -ss 759.70 -t 4.00 -ac 1 segment_0056.wav
+
+57. R8008_M8013
+   Time: 780.40s - 784.30s (3.90s)
+   Audio: Eval_Ali_far/audio_dir/R8008_M8013.wav
+   Speakers: ['N_SPK8047', 'N_SPK8048', 'N_SPK8049']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8008_M8013.wav -ss 780.40 -t 3.90 -ac 1 segment_0057.wav
+
+58. R8008_M8013
+   Time: 985.15s - 988.25s (3.10s)
+   Audio: Eval_Ali_far/audio_dir/R8008_M8013.wav
+   Speakers: ['N_SPK8047', 'N_SPK8049']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8008_M8013.wav -ss 985.15 -t 3.10 -ac 1 segment_0058.wav
+
+59. R8008_M8013
+   Time: 1020.70s - 1024.35s (3.65s)
+   Audio: Eval_Ali_far/audio_dir/R8008_M8013.wav
+   Speakers: ['N_SPK8047', 'N_SPK8048', 'N_SPK8049']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8008_M8013.wav -ss 1020.70 -t 3.65 -ac 1 segment_0059.wav
+
+60. R8008_M8013
+   Time: 1068.25s - 1071.80s (3.55s)
+   Audio: Eval_Ali_far/audio_dir/R8008_M8013.wav
+   Speakers: ['N_SPK8047', 'N_SPK8048', 'N_SPK8049']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8008_M8013.wav -ss 1068.25 -t 3.55 -ac 1 segment_0060.wav
+
+61. R8008_M8013
+   Time: 1264.60s - 1268.15s (3.55s)
+   Audio: Eval_Ali_far/audio_dir/R8008_M8013.wav
+   Speakers: ['N_SPK8048', 'N_SPK8049']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8008_M8013.wav -ss 1264.60 -t 3.55 -ac 1 segment_0061.wav
+
+62. R8008_M8013
+   Time: 1332.35s - 1336.55s (4.20s)
+   Audio: Eval_Ali_far/audio_dir/R8008_M8013.wav
+   Speakers: ['N_SPK8047', 'N_SPK8048', 'N_SPK8049']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8008_M8013.wav -ss 1332.35 -t 4.20 -ac 1 segment_0062.wav
+
+63. R8008_M8013
+   Time: 1391.45s - 1395.45s (4.00s)
+   Audio: Eval_Ali_far/audio_dir/R8008_M8013.wav
+   Speakers: ['N_SPK8047', 'N_SPK8048', 'N_SPK8049']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8008_M8013.wav -ss 1391.45 -t 4.00 -ac 1 segment_0063.wav
+
+64. R8008_M8013
+   Time: 1693.25s - 1696.90s (3.65s)
+   Audio: Eval_Ali_far/audio_dir/R8008_M8013.wav
+   Speakers: ['N_SPK8047', 'N_SPK8048']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8008_M8013.wav -ss 1693.25 -t 3.65 -ac 1 segment_0064.wav
+
+65. R8008_M8013
+   Time: 1910.65s - 1913.65s (3.00s)
+   Audio: Eval_Ali_far/audio_dir/R8008_M8013.wav
+   Speakers: ['N_SPK8047', 'N_SPK8048', 'N_SPK8049']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8008_M8013.wav -ss 1910.65 -t 3.00 -ac 1 segment_0065.wav
+
+66. R8008_M8013
+   Time: 2071.35s - 2074.35s (3.00s)
+   Audio: Eval_Ali_far/audio_dir/R8008_M8013.wav
+   Speakers: ['N_SPK8047', 'N_SPK8048', 'N_SPK8049']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8008_M8013.wav -ss 2071.35 -t 3.00 -ac 1 segment_0066.wav
+
+67. R8008_M8013
+   Time: 2085.15s - 2088.35s (3.20s)
+   Audio: Eval_Ali_far/audio_dir/R8008_M8013.wav
+   Speakers: ['N_SPK8047', 'N_SPK8048', 'N_SPK8049']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8008_M8013.wav -ss 2085.15 -t 3.20 -ac 1 segment_0067.wav
+
+68. R8009_M8018
+   Time: 1021.60s - 1024.95s (3.35s)
+   Audio: Eval_Ali_far/audio_dir/R8009_M8018.wav
+   Speakers: ['N_SPK8021', 'N_SPK8022']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8009_M8018.wav -ss 1021.60 -t 3.35 -ac 1 segment_0068.wav
+
+69. R8009_M8019
+   Time: 578.20s - 584.25s (6.05s)
+   Audio: Eval_Ali_far/audio_dir/R8009_M8019.wav
+   Speakers: ['N_SPK8023', 'N_SPK8024']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8009_M8019.wav -ss 578.20 -t 6.05 -ac 1 segment_0069.wav
+
+70. R8009_M8019
+   Time: 622.95s - 626.05s (3.10s)
+   Audio: Eval_Ali_far/audio_dir/R8009_M8019.wav
+   Speakers: ['N_SPK8023', 'N_SPK8024']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8009_M8019.wav -ss 622.95 -t 3.10 -ac 1 segment_0070.wav
+
+71. R8009_M8019
+   Time: 690.60s - 695.30s (4.70s)
+   Audio: Eval_Ali_far/audio_dir/R8009_M8019.wav
+   Speakers: ['N_SPK8023', 'N_SPK8024']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8009_M8019.wav -ss 690.60 -t 4.70 -ac 1 segment_0071.wav
+
+72. R8009_M8019
+   Time: 857.35s - 861.85s (4.50s)
+   Audio: Eval_Ali_far/audio_dir/R8009_M8019.wav
+   Speakers: ['N_SPK8023', 'N_SPK8024']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8009_M8019.wav -ss 857.35 -t 4.50 -ac 1 segment_0072.wav
+
+73. R8009_M8019
+   Time: 1301.65s - 1305.00s (3.35s)
+   Audio: Eval_Ali_far/audio_dir/R8009_M8019.wav
+   Speakers: ['N_SPK8023', 'N_SPK8024']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8009_M8019.wav -ss 1301.65 -t 3.35 -ac 1 segment_0073.wav
+
+74. R8009_M8019
+   Time: 1493.95s - 1498.80s (4.85s)
+   Audio: Eval_Ali_far/audio_dir/R8009_M8019.wav
+   Speakers: ['N_SPK8023', 'N_SPK8024']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8009_M8019.wav -ss 1493.95 -t 4.85 -ac 1 segment_0074.wav
+
+75. R8009_M8019
+   Time: 1807.65s - 1810.85s (3.20s)
+   Audio: Eval_Ali_far/audio_dir/R8009_M8019.wav
+   Speakers: ['N_SPK8023', 'N_SPK8024']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8009_M8019.wav -ss 1807.65 -t 3.20 -ac 1 segment_0075.wav
+
+76. R8009_M8019
+   Time: 1919.45s - 1922.60s (3.15s)
+   Audio: Eval_Ali_far/audio_dir/R8009_M8019.wav
+   Speakers: ['N_SPK8023', 'N_SPK8024']
+   Extraction: ffmpeg -i Eval_Ali_far/audio_dir/R8009_M8019.wav -ss 1919.45 -t 3.15 -ac 1 segment_0076.wav
+

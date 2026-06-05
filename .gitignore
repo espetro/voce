@@ -15,6 +15,9 @@ voce.app/
 tmp/
 .osgrep/
 
+# Eval — raw multi-GB source recordings (derive clips into tests/ instead)
+eval/fixtures/alimeeting/audio/
+
 # Python (eval/)
 eval/.venv/
 __pycache__/

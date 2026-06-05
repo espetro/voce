@@ -1,0 +1,269 @@
+{
+  "statistics": {
+    "total_meetings": 8,
+    "total_candidate_segments": 14,
+    "total_ideal_segments": 0,
+    "ideal_ratio": 0.0
+  },
+  "per_meeting_stats": {
+    "R8001_M8004": {
+      "total_speakers": 4,
+      "total_overlap_segments": 304,
+      "candidate_segments": 3,
+      "ideal_segments": 0,
+      "speaker_intervals_count": {
+        "N_SPK8013": 277,
+        "N_SPK8014": 85,
+        "N_SPK8015": 154,
+        "N_SPK8016": 88
+      }
+    },
+    "R8003_M8001": {
+      "total_speakers": 4,
+      "total_overlap_segments": 302,
+      "candidate_segments": 0,
+      "ideal_segments": 0,
+      "speaker_intervals_count": {
+        "N_SPK8001": 97,
+        "N_SPK8002": 174,
+        "N_SPK8003": 181,
+        "N_SPK8004": 222
+      }
+    },
+    "R8007_M8010": {
+      "total_speakers": 4,
+      "total_overlap_segments": 400,
+      "candidate_segments": 11,
+      "ideal_segments": 0,
+      "speaker_intervals_count": {
+        "N_SPK8050": 340,
+        "N_SPK8054": 262,
+        "N_SPK8055": 269,
+        "N_SPK8056": 310
+      }
+    },
+    "R8007_M8011": {
+      "total_speakers": 4,
+      "total_overlap_segments": 347,
+      "candidate_segments": 0,
+      "ideal_segments": 0,
+      "speaker_intervals_count": {
+        "N_SPK8066": 196,
+        "N_SPK8067": 170,
+        "N_SPK8068": 201,
+        "N_SPK8069": 201
+      }
+    },
+    "R8008_M8013": {
+      "total_speakers": 3,
+      "total_overlap_segments": 323,
+      "candidate_segments": 0,
+      "ideal_segments": 0,
+      "speaker_intervals_count": {
+        "N_SPK8047": 252,
+        "N_SPK8048": 239,
+        "N_SPK8049": 241
+      }
+    },
+    "R8009_M8018": {
+      "total_speakers": 2,
+      "total_overlap_segments": 196,
+      "candidate_segments": 0,
+      "ideal_segments": 0,
+      "speaker_intervals_count": {
+        "N_SPK8021": 390,
+        "N_SPK8022": 275
+      }
+    },
+    "R8009_M8019": {
+      "total_speakers": 2,
+      "total_overlap_segments": 134,
+      "candidate_segments": 0,
+      "ideal_segments": 0,
+      "speaker_intervals_count": {
+        "N_SPK8023": 493,
+        "N_SPK8024": 466
+      }
+    },
+    "R8009_M8020": {
+      "total_speakers": 2,
+      "total_overlap_segments": 182,
+      "candidate_segments": 0,
+      "ideal_segments": 0,
+      "speaker_intervals_count": {
+        "N_SPK8025": 509,
+        "N_SPK8026": 365
+      }
+    }
+  },
+  "all_candidates": [
+    {
+      "start_time": 523.8000000000001,
+      "end_time": 535.9,
+      "duration": 12.099999999999909,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "all_speakers_solo_5s": false
+    },
+    {
+      "start_time": 719.0,
+      "end_time": 732.6,
+      "duration": 13.600000000000023,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "all_speakers_solo_5s": false
+    },
+    {
+      "start_time": 1222.6000000000001,
+      "end_time": 1233.0,
+      "duration": 10.399999999999864,
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8014",
+        "N_SPK8015",
+        "N_SPK8016"
+      ],
+      "all_speakers_solo_5s": false
+    },
+    {
+      "start_time": 104.60000000000001,
+      "end_time": 114.7,
+      "duration": 10.099999999999994,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "all_speakers_solo_5s": false
+    },
+    {
+      "start_time": 386.0,
+      "end_time": 397.5,
+      "duration": 11.5,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "all_speakers_solo_5s": false
+    },
+    {
+      "start_time": 421.3,
+      "end_time": 434.40000000000003,
+      "duration": 13.100000000000023,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "all_speakers_solo_5s": false
+    },
+    {
+      "start_time": 502.5,
+      "end_time": 514.7,
+      "duration": 12.200000000000045,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "all_speakers_solo_5s": false
+    },
+    {
+      "start_time": 595.0,
+      "end_time": 605.3000000000001,
+      "duration": 10.300000000000068,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "all_speakers_solo_5s": false
+    },
+    {
+      "start_time": 653.9000000000001,
+      "end_time": 667.9000000000001,
+      "duration": 14.0,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "all_speakers_solo_5s": false
+    },
+    {
+      "start_time": 902.1,
+      "end_time": 913.1,
+      "duration": 11.0,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "all_speakers_solo_5s": false
+    },
+    {
+      "start_time": 991.7,
+      "end_time": 1002.5,
+      "duration": 10.799999999999955,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "all_speakers_solo_5s": false
+    },
+    {
+      "start_time": 1317.2,
+      "end_time": 1331.2,
+      "duration": 14.0,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "all_speakers_solo_5s": false
+    },
+    {
+      "start_time": 1552.1000000000001,
+      "end_time": 1565.7,
+      "duration": 13.599999999999909,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "all_speakers_solo_5s": false
+    },
+    {
+      "start_time": 1608.1000000000001,
+      "end_time": 1619.7,
+      "duration": 11.599999999999909,
+      "speakers": [
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055",
+        "N_SPK8056"
+      ],
+      "all_speakers_solo_5s": false
+    }
+  ]
+}

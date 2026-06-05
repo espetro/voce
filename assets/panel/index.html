@@ -178,8 +178,7 @@ body {
     Voce learns to recognise your voice and filters out everyone else's on your calls.
   </div>
   <div id="blackhole-warning" class="warning" style="display:none">
-    ⚠ BlackHole 2ch is required.
-    <a onclick="send({cmd:'open_blackhole_link'})">Install →</a>
+    ⚠ Voce Microphone driver not found. Run <code>make -C audio-driver reload</code>.
   </div>
 </div>
 
@@ -192,8 +191,7 @@ body {
     <span>Model ready</span>
   </div>
   <div id="blackhole-warning-ob" class="warning" style="display:none">
-    ⚠ BlackHole 2ch is required.
-    <a onclick="send({cmd:'open_blackhole_link'})">Install →</a>
+    ⚠ Voce Microphone driver not found. Run <code>make -C audio-driver reload</code>.
   </div>
   <div class="section-title">Step 1 of 2 — Record Your Voice</div>
   <div class="body-text">
@@ -329,7 +327,10 @@ body {
 <div id="screen-active" class="screen">
   <div class="status-row">
     <div id="active-dot" class="dot green"></div>
-    <span id="active-label">Active — BlackHole 2ch</span>
+    <span id="active-label">Active — Voce Microphone</span>
+  </div>
+  <div class="body-text" style="font-size:12px;color:#888;margin-bottom:8px;">
+    In your call app, set your microphone input to <strong>Voce Microphone</strong>.
   </div>
   <div class="stats-row">
     <span>Similarity (last 3 s)</span>

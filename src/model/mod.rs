@@ -1,6 +1,7 @@
 pub mod download;
 pub mod embedder;
 pub mod vad;
+pub mod wespeaker;
 
 use anyhow::Result;
 use std::path::Path;
@@ -30,7 +31,7 @@ impl ModelSet {
 
         info!("Loading speaker embedding model…");
         let embedder =
-            EmbedderWrapper::new(&models_dir.join("speaker_embedding_extractor.onnx"))?;
+            EmbedderWrapper::new(&models_dir.join("voxblink2_samresnet34_ft.onnx"))?;
         info!("Speaker embedding model ready");
 
         Ok(ModelSet { vad, embedder })

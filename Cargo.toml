@@ -12,7 +12,12 @@ path = "src/main.rs"
 cpal = "0.17"
 
 # Speaker embedding + VAD (ONNX-backed, async)
+# VAD still uses voxudio, embedder now uses direct ONNX
 voxudio = { version = "0.5", features = ["model"] }
+
+# Feature extraction for WeSpeaker embeddings
+kaldi-native-fbank = "0.1"
+ndarray = "0.15"
 
 # ONNX Runtime — pin to match voxudio's rc.11; add coreml feature for Apple Silicon
 ort = { version = "=2.0.0-rc.11", features = ["coreml"] }
@@ -55,6 +60,9 @@ hound = "3.5"
 
 # Audio resampling for --eval mode (LibriSpeech is 16 kHz; pipeline needs 22050 Hz)
 rubato = "0.15"
+
+# POSIX shm_open / mmap for VoceAudio driver ring buffer
+libc = "0.2"
 
 # Utilities
 anyhow = "1"

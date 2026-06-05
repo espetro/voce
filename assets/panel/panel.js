@@ -148,7 +148,7 @@ function handleStateChanged(state) {
     case 'ACTIVE_STANDBY':
     case 'FILTERING':
       showScreen('screen-active');
-      setText('active-label', 'Active — BlackHole 2ch');
+      setText('active-label', 'Active — Voce Microphone');
       break;
     default:
       console.warn('[voce] unknown state:', state);

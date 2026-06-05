@@ -1,0 +1,136 @@
+{
+  "source_path": "/Users/joaquin.terrasamoya/Downloads/Eval_Ali/Eval_Ali_far",
+  "audio_files": [
+    {
+      "filename": "R8001_M8004_MS801.wav",
+      "duration_s": 1573.85,
+      "sample_rate": 16000,
+      "channels": 8,
+      "speakers": 4
+    },
+    {
+      "filename": "R8003_M8001_MS801.wav",
+      "duration_s": 2068.0,
+      "sample_rate": 16000,
+      "channels": 8,
+      "speakers": 4
+    },
+    {
+      "filename": "R8007_M8010_MS803.wav",
+      "duration_s": 1856.32,
+      "sample_rate": 16000,
+      "channels": 8,
+      "speakers": 4
+    },
+    {
+      "filename": "R8007_M8011_MS806.wav",
+      "duration_s": 1861.55,
+      "sample_rate": 16000,
+      "channels": 8,
+      "speakers": 4
+    },
+    {
+      "filename": "R8008_M8013_MS807.wav",
+      "duration_s": 2239.47,
+      "sample_rate": 16000,
+      "channels": 8,
+      "speakers": 3
+    },
+    {
+      "filename": "R8009_M8018_MS809.wav",
+      "duration_s": 1654.66,
+      "sample_rate": 16000,
+      "channels": 8,
+      "speakers": 2
+    },
+    {
+      "filename": "R8009_M8019_MS810.wav",
+      "duration_s": 1973.93,
+      "sample_rate": 16000,
+      "channels": 8,
+      "speakers": 2
+    },
+    {
+      "filename": "R8009_M8020_MS810.wav",
+      "duration_s": 1910.44,
+      "sample_rate": 16000,
+      "channels": 8,
+      "speakers": 2
+    }
+  ],
+  "textgrid_files": [
+    {
+      "filename": "R8001_M8004.TextGrid",
+      "audio_match": "R8001_M8004.Text_MSxxx.wav",
+      "speakers": [
+        "N_SPK8013",
+        "N_SPK8016",
+        "N_SPK8014",
+        "N_SPK8015"
+      ]
+    },
+    {
+      "filename": "R8003_M8001.TextGrid",
+      "audio_match": "R8003_M8001.Text_MSxxx.wav",
+      "speakers": [
+        "N_SPK8004",
+        "N_SPK8001",
+        "N_SPK8003",
+        "N_SPK8002"
+      ]
+    },
+    {
+      "filename": "R8007_M8010.TextGrid",
+      "audio_match": "R8007_M8010.Text_MSxxx.wav",
+      "speakers": [
+        "N_SPK8056",
+        "N_SPK8050",
+        "N_SPK8054",
+        "N_SPK8055"
+      ]
+    },
+    {
+      "filename": "R8007_M8011.TextGrid",
+      "audio_match": "R8007_M8011.Text_MSxxx.wav",
+      "speakers": [
+        "N_SPK8066",
+        "N_SPK8069",
+        "N_SPK8068",
+        "N_SPK8067"
+      ]
+    },
+    {
+      "filename": "R8008_M8013.TextGrid",
+      "audio_match": "R8008_M8013.Text_MSxxx.wav",
+      "speakers": [
+        "N_SPK8047",
+        "N_SPK8049",
+        "N_SPK8048"
+      ]
+    },
+    {
+      "filename": "R8009_M8018.TextGrid",
+      "audio_match": "R8009_M8018.Text_MSxxx.wav",
+      "speakers": [
+        "N_SPK8022",
+        "N_SPK8021"
+      ]
+    },
+    {
+      "filename": "R8009_M8019.TextGrid",
+      "audio_match": "R8009_M8019.Text_MSxxx.wav",
+      "speakers": [
+        "N_SPK8024",
+        "N_SPK8023"
+      ]
+    },
+    {
+      "filename": "R8009_M8020.TextGrid",
+      "audio_match": "R8009_M8020.Text_MSxxx.wav",
+      "speakers": [
+        "N_SPK8025",
+        "N_SPK8026"
+      ]
+    }
+  ]
+}

@@ -9,7 +9,8 @@ pub struct ModelUrls {
 
 pub const URLS: ModelUrls = ModelUrls {
     vad: "https://github.com/mzdk100/voxudio/releases/download/model/voice_activity_detector.onnx",
-    embedder: "https://github.com/mzdk100/voxudio/releases/download/model/speaker_embedding_extractor.onnx",
+    // WeSpeaker VoxBlink2 + VoxCeleb2 FT SimAMResNet34 (256-dim embeddings)
+    embedder: "https://wenet.org.cn/downloads?models=wespeaker&version=voxblink2_samresnet34_ft.onnx",
 };
 
 /// Download ONNX model files to `models_dir` if they are not already present.
@@ -22,7 +23,7 @@ pub async fn ensure_models(
 
     let files = [
         ("voice_activity_detector.onnx", URLS.vad),
-        ("speaker_embedding_extractor.onnx", URLS.embedder),
+        ("voxblink2_samresnet34_ft.onnx", URLS.embedder),
     ];
 
     let total = files.len() as f32;
