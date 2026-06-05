@@ -142,24 +142,44 @@ pub async fn run_eval(
 
 /// Entry point for `--eval-enroll` mode.
 ///
-/// Computes a speaker embedding from `wav_path` and saves it to `out_path`
-/// (defaults to `~/.voce/enrolled_embedding.json`).
-pub async fn run_enroll_from_wav(wav_path: PathBuf, out_path: Option<PathBuf>) -> Result<i32> {
+/// Computes a speaker embedding from `wav_path` (and optionally `wav_path2`)
+/// and saves it to `out_path` (defaults to `~/.voce/enrolled_embedding.json`).
+/// When two recordings are provided, prints the cross-similarity to stderr.
+pub async fn run_enroll_from_wav(
+    wav_path: PathBuf,
+    wav_path2: Option<PathBuf>,
+    out_path: Option<PathBuf>,
+) -> Result<i32> {
     if !wav_path.exists() {
         eprintln!("error: file not found: {}", wav_path.display());
         return Ok(1);
     }
 
-    let samples = load_wav_as_f32_22050(&wav_path)?;
+    let mut recordings = vec![load_wav_as_f32_22050(&wav_path)?];
+
+    if let Some(ref p2) = wav_path2 {
+        if !p2.exists() {
+            eprintln!("error: file not found: {}", p2.display());
+            return Ok(1);
+        }
+        recordings.push(load_wav_as_f32_22050(p2)?);
+    }
 
     let models_dir = config::models_dir();
     let mut models = ModelSet::load(&models_dir, |_| {})
         .await
         .context("failed to load ONNX models")?;
 
-    let profile = compute_profile(&mut models.embedder, &[samples])
+    let (profile, cross_sim) = compute_profile(&mut models.embedder, &recordings)
         .await
         .context("failed to compute embedding from WAV")?;
+
+    if let Some(sim) = cross_sim {
+        eprintln!("enrollment cross-similarity: {sim:.3}");
+        if sim < 0.8 {
+            eprintln!("warning: cross-similarity {sim:.3} < 0.8 — recordings may be different speakers / low quality");
+        }
+    }
 
     let save_path = out_path.unwrap_or_else(config::enrolled_embedding_path);
     profile

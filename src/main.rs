@@ -637,14 +637,15 @@ fn main() -> anyhow::Result<()> {
     // --- Early intercepts: eval modes bypass all GUI initialisation ---
     let args: Vec<String> = std::env::args().collect();
 
-    // --eval-enroll <wav> [--eval-enroll-out <path>]
+    // --eval-enroll <wav> [--eval-enroll-2 <wav>] [--eval-enroll-out <path>]
     if args.iter().any(|a| a == "--eval-enroll") {
         let wav = flag_val(&args, "--eval-enroll")
             .ok_or_else(|| anyhow::anyhow!("--eval-enroll requires a WAV file path"))?;
+        let wav2 = flag_val(&args, "--eval-enroll-2").map(std::path::PathBuf::from);
         let out = flag_val(&args, "--eval-enroll-out").map(std::path::PathBuf::from);
         init_eval_logging();
         let rt = build_rt()?;
-        let code = rt.block_on(eval::run_enroll_from_wav(std::path::PathBuf::from(wav), out))?;
+        let code = rt.block_on(eval::run_enroll_from_wav(std::path::PathBuf::from(wav), wav2, out))?;
         std::process::exit(code);
     }
 

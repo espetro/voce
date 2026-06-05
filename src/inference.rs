@@ -329,7 +329,10 @@ async fn compute_and_save_profile(
     buffers.clear();
 
     match result {
-        Ok(profile) => {
+        Ok((profile, cross_sim)) => {
+            if let Some(sim) = cross_sim {
+                info!("enrollment cross-similarity logged: {sim:.3}");
+            }
             let path = config::enrolled_embedding_path();
             match profile.save(&path) {
                 Ok(()) => {
