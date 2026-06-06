@@ -15,6 +15,12 @@ voce.app/
 tmp/
 .osgrep/
 
+# Audio driver — compiled output
+audio-driver/VoceAudio.driver/Contents/MacOS/
+
+# Install — Vite dependency cache
+install/.vite/
+
 # Eval — raw multi-GB source recordings (derive clips into tests/ instead)
 eval/fixtures/alimeeting/audio/
 
