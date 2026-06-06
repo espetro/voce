@@ -71,7 +71,7 @@ mod tests {
     fn complete_with_sufficient_speech() {
         let mut s = EnrollmentSession::new();
         // Push TARGET_DURATION_SAMPLES samples all as speech
-        let total_chunks = TARGET_DURATION_SAMPLES as usize / CHUNK;
+        let total_chunks = (TARGET_DURATION_SAMPLES as usize + CHUNK - 1) / CHUNK;
         let status = push_n_chunks(&mut s, total_chunks, true);
         assert!(matches!(status, EnrollmentStatus::Complete { .. }));
     }
@@ -80,7 +80,7 @@ mod tests {
     fn invalid_with_insufficient_speech() {
         let mut s = EnrollmentSession::new();
         // Fill total duration but mark nothing as speech
-        let total_chunks = TARGET_DURATION_SAMPLES as usize / CHUNK;
+        let total_chunks = (TARGET_DURATION_SAMPLES as usize + CHUNK - 1) / CHUNK;
         let status = push_n_chunks(&mut s, total_chunks, false);
         assert!(matches!(status, EnrollmentStatus::Invalid { reason: "insufficient_speech" }));
     }
