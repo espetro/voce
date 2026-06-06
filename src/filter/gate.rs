@@ -35,8 +35,8 @@ impl SlidingVoteGate {
         }
         self.last_similarity = similarity;
 
-        // Mute only if ALL recent frames failed (conservative: prefer false-pass over false-mute)
-        let all_failed = !self.history.is_empty() && self.history.iter().all(|&p| !p);
+        // Mute only when the window is full AND every frame failed; a partial window stays open.
+        let all_failed = self.history.len() == self.vote_window && self.history.iter().all(|&p| !p);
         self.current_pass = !all_failed;
         self.current_pass
     }
