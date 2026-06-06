@@ -9,14 +9,6 @@
  *
  * The compiled .driver bundle lands in ~/Library/Audio/Plug-Ins/HAL/;
  * CoreAudio picks it up after `launchctl kickstart -k system/com.apple.audio.coreaudiod`.
- *
- * Shared-memory layout (VoceRingBuffer):
- *   [write_pos: _Atomic uint32_t]
- *   [read_pos:  _Atomic uint32_t]
- *   [samples:   float[RING_CAP]]
- *
- * Rust writes float32 samples and advances write_pos.
- * This plugin reads them and advances read_pos.
  */
 
 #include <CoreAudio/AudioServerPlugIn.h>
@@ -45,7 +37,7 @@ typedef struct {
 
 #define kSampleRate      22050.0
 #define kNumChannels     1u
-#define kBufferFrames    512u                   // frames per IO cycle
+#define kBufferFrames    512u
 
 #define kObjectID_PlugIn     1u
 #define kObjectID_Device     2u
@@ -60,28 +52,22 @@ typedef struct {
 // ─── Driver state ─────────────────────────────────────────────────────────────
 
 typedef struct {
-    // COM interface pointer (must be first)
     AudioServerPlugInDriverInterface *mInterface;
     AudioServerPlugInDriverInterface  mInterfaceImpl;
 
     pthread_mutex_t  mMutex;
     volatile bool    mDeviceRunning;
 
-    // Shared-memory ring buffer
     VoceRingBuffer  *mRing;
     int              mShmFd;
 
-    // Timestamp tracking
     uint64_t         mAnchorSampleTime;
     uint64_t         mAnchorHostTime;
-
-    // Host-time ↔ nanosecond conversion
     mach_timebase_info_data_t mTimebase;
 } VoceDriver;
 
 static VoceDriver gDriver;
 
-// Convenience
 #define LOCK()   pthread_mutex_lock(&gDriver.mMutex)
 #define UNLOCK() pthread_mutex_unlock(&gDriver.mMutex)
 
@@ -112,7 +98,6 @@ static void ring_close(void) {
     gDriver.mShmFd = -1;
 }
 
-// Read `n_frames` samples from ring into `dst` (zero-fill if underrun).
 static void ring_read(float *dst, uint32_t n_frames) {
     VoceRingBuffer *r = gDriver.mRing;
     if (!r) { memset(dst, 0, n_frames * sizeof(float)); return; }
@@ -134,9 +119,6 @@ static void ring_read(float *dst, uint32_t n_frames) {
 // ─── Host-time helpers ────────────────────────────────────────────────────────
 
 static uint64_t host_ticks_per_frame(void) {
-    // ticks_per_ns = mTimebase.numer / mTimebase.denom
-    // ns_per_frame = 1e9 / kSampleRate
-    // ticks_per_frame = (numer * 1e9) / (denom * kSampleRate)
     return (uint64_t)(
         (double)gDriver.mTimebase.numer * 1e9 /
         ((double)gDriver.mTimebase.denom * kSampleRate)
@@ -166,12 +148,11 @@ static ULONG Voce_Release(void *inDriver) { (void)inDriver; return 1; }
 
 // ─── AudioServerPlugIn: Init / Device lifecycle ───────────────────────────────
 
-static OSStatus Voce_InitializeWithObjectID(
+static OSStatus Voce_Initialize(
     AudioServerPlugInDriverRef   inDriver,
-    AudioServerPlugInHostRef     inHost,
-    AudioObjectID                inObjectID)
+    AudioServerPlugInHostRef     inHost)
 {
-    (void)inDriver; (void)inHost; (void)inObjectID;
+    (void)inDriver; (void)inHost;
     pthread_mutex_init(&gDriver.mMutex, NULL);
     mach_timebase_info(&gDriver.mTimebase);
     gDriver.mAnchorHostTime   = mach_absolute_time();
@@ -201,23 +182,8 @@ static OSStatus Voce_DestroyDevice(
     return kAudioHardwareNoError;
 }
 
-// ─── AudioObject: AddPropertyListener / RemovePropertyListener ───────────────
-
-static OSStatus Voce_AddPropertyListener(
-    AudioServerPlugInDriverRef inDriver, AudioObjectID inObjectID,
-    pid_t inClientPID, const AudioObjectPropertyAddress *inAddress,
-    AudioServerPlugInSuperObjectRef inSuperObjectRef)
-{ (void)inDriver;(void)inObjectID;(void)inClientPID;(void)inAddress;(void)inSuperObjectRef; return kAudioHardwareNoError; }
-
-static OSStatus Voce_RemovePropertyListener(
-    AudioServerPlugInDriverRef inDriver, AudioObjectID inObjectID,
-    pid_t inClientPID, const AudioObjectPropertyAddress *inAddress,
-    AudioServerPlugInSuperObjectRef inSuperObjectRef)
-{ (void)inDriver;(void)inObjectID;(void)inClientPID;(void)inAddress;(void)inSuperObjectRef; return kAudioHardwareNoError; }
-
 // ─── Property helpers ─────────────────────────────────────────────────────────
 
-// Returns the standard PCM format for our stream.
 static AudioStreamBasicDescription voce_format(void) {
     AudioStreamBasicDescription f = {0};
     f.mSampleRate       = kSampleRate;
@@ -249,7 +215,6 @@ static Boolean Voce_HasProperty(
                    sel == kAudioObjectPropertyManufacturer  ||
                    sel == kAudioPlugInPropertyBundleID      ||
                    sel == kAudioPlugInPropertyDeviceList    ||
-                   sel == kAudioPlugInPropertyBoxList       ||
                    sel == kAudioPlugInPropertyTranslateUIDToDevice;
         case kObjectID_Device:
             return sel == kAudioObjectPropertyBaseClass     ||
@@ -273,7 +238,6 @@ static Boolean Voce_HasProperty(
                    sel == kAudioDevicePropertyNominalSampleRate ||
                    sel == kAudioDevicePropertyAvailableNominalSampleRates ||
                    sel == kAudioDevicePropertyIsHidden       ||
-                   sel == kAudioDevicePropertyPreferredChannelsForStereo ||
                    sel == kAudioDevicePropertyZeroTimeStampPeriod;
         case kObjectID_Stream:
             return sel == kAudioObjectPropertyBaseClass     ||
@@ -303,11 +267,10 @@ static OSStatus Voce_IsPropertySettable(
 {
     (void)inDriver; (void)inClientPID;
     if (outIsSettable) *outIsSettable = false;
-    // Allow setting the stream format (some apps probe this)
     if (inObjectID == kObjectID_Stream &&
         (inAddress->mSelector == kAudioStreamPropertyVirtualFormat ||
          inAddress->mSelector == kAudioStreamPropertyPhysicalFormat))
-        if (outIsSettable) *outIsSettable = false; // we only support one format
+        if (outIsSettable) *outIsSettable = false;
     return kAudioHardwareNoError;
 }
 
@@ -336,7 +299,6 @@ static OSStatus Voce_GetPropertyDataSize(
             if (sel == kAudioObjectPropertyManufacturer){ SZ_CF; }
             if (sel == kAudioPlugInPropertyBundleID)    { SZ_CF; }
             if (sel == kAudioPlugInPropertyDeviceList)  { SZ(AudioObjectID); }
-            if (sel == kAudioPlugInPropertyBoxList)     { *outDataSize = 0; return kAudioHardwareNoError; }
             if (sel == kAudioPlugInPropertyTranslateUIDToDevice) { SZ(AudioObjectID); }
             break;
         case kObjectID_Device:
@@ -409,16 +371,14 @@ static OSStatus Voce_GetPropertyData(
 #define SET_CF(str) do { *(CFStringRef*)outData = CFRetain(str); *outDataSize = sizeof(CFStringRef); return kAudioHardwareNoError; } while(0)
 
     switch (inObjectID) {
-        // ── PlugIn ──────────────────────────────────────────────────────────
         case kObjectID_PlugIn:
             if (sel == kAudioObjectPropertyBaseClass)    SET(AudioClassID, kAudioPlugInClassID);
             if (sel == kAudioObjectPropertyClass)        SET(AudioClassID, kAudioPlugInClassID);
-            if (sel == kAudioObjectPropertyOwner)        SET(AudioObjectID, kAudioObjectSystemObject);
+            if (sel == kAudioObjectPropertyOwner)        SET(AudioObjectID, kAudioObjectUnknown);
             if (sel == kAudioObjectPropertyName)         SET_CF(CFSTR("Voce Audio"));
             if (sel == kAudioObjectPropertyManufacturer) SET_CF(kMfgName);
             if (sel == kAudioPlugInPropertyBundleID)     SET_CF(kPlugInBundleID);
             if (sel == kAudioPlugInPropertyDeviceList)   SET(AudioObjectID, kObjectID_Device);
-            if (sel == kAudioPlugInPropertyBoxList)      { *outDataSize = 0; return kAudioHardwareNoError; }
             if (sel == kAudioPlugInPropertyTranslateUIDToDevice) {
                 CFStringRef uid = *(CFStringRef*)inQualifierData;
                 AudioObjectID result = CFEqual(uid, kDeviceUID) ? kObjectID_Device : kAudioObjectUnknown;
@@ -426,7 +386,6 @@ static OSStatus Voce_GetPropertyData(
             }
             break;
 
-        // ── Device ──────────────────────────────────────────────────────────
         case kObjectID_Device:
             if (sel == kAudioObjectPropertyBaseClass)    SET(AudioClassID, kAudioDeviceClassID);
             if (sel == kAudioObjectPropertyClass)        SET(AudioClassID, kAudioDeviceClassID);
@@ -475,14 +434,13 @@ static OSStatus Voce_GetPropertyData(
             if (sel == kAudioDevicePropertyPreferredChannelsForStereo) {
                 if (inDataSize >= 2 * sizeof(UInt32)) {
                     UInt32 *ch = (UInt32*)outData;
-                    ch[0] = 1; ch[1] = 1;   // mono: both L/R map to channel 1
+                    ch[0] = 1; ch[1] = 1;
                     *outDataSize = 2 * sizeof(UInt32);
                 }
                 return kAudioHardwareNoError;
             }
             break;
 
-        // ── Stream ───────────────────────────────────────────────────────────
         case kObjectID_Stream: {
             AudioStreamBasicDescription fmt = voce_format();
             if (sel == kAudioObjectPropertyBaseClass)    SET(AudioClassID, kAudioStreamClassID);
@@ -490,7 +448,7 @@ static OSStatus Voce_GetPropertyData(
             if (sel == kAudioObjectPropertyOwner)        SET(AudioObjectID, kObjectID_Device);
             if (sel == kAudioObjectPropertyName)         SET_CF(kStreamName);
             if (sel == kAudioStreamPropertyIsActive)     SET(UInt32, 1);
-            if (sel == kAudioStreamPropertyDirection)    SET(UInt32, 1);   // 1 = input
+            if (sel == kAudioStreamPropertyDirection)    SET(UInt32, 1);
             if (sel == kAudioStreamPropertyTerminalType) SET(UInt32, kAudioStreamTerminalTypeMicrophone);
             if (sel == kAudioStreamPropertyStartingChannel) SET(UInt32, 1);
             if (sel == kAudioStreamPropertyLatency)      SET(UInt32, 0);
@@ -625,14 +583,14 @@ static OSStatus Voce_EndIOOperation(
     UInt32 inClientID, UInt32 inOperationID,
     UInt32 inIOBufferFrameSize, const AudioServerPlugInIOCycleInfo *inIOCycleInfo)
 {
-    (void)inDriver;(void)inDeviceObjectID;(void)inClientID;(void)inIOCycleInfo;
+    (void)inDriver;(void)inDeviceObjectID;(void)inClientID;(void)inOperationID;
+    (void)inIOCycleInfo;
 
-    if (inOperationID == kAudioServerPlugInIOOperationEndOfCycle) {
-        LOCK();
-        gDriver.mAnchorSampleTime += inIOBufferFrameSize;
-        gDriver.mAnchorHostTime   += (uint64_t)inIOBufferFrameSize * host_ticks_per_frame();
-        UNLOCK();
-    }
+    LOCK();
+    gDriver.mAnchorSampleTime += inIOBufferFrameSize;
+    gDriver.mAnchorHostTime   += (uint64_t)inIOBufferFrameSize * host_ticks_per_frame();
+    UNLOCK();
+
     return kAudioHardwareNoError;
 }
 
@@ -644,13 +602,12 @@ void *AudioServerPlugInBundleEntry(CFAllocatorRef inAllocator, CFUUIDRef inReque
     if (!CFEqual(inRequestedTypeUUID, kAudioServerPlugInTypeUUID))
         return NULL;
 
-    // Build the vtable
     AudioServerPlugInDriverInterface *iface = &gDriver.mInterfaceImpl;
     memset(iface, 0, sizeof(*iface));
     iface->QueryInterface          = Voce_QueryInterface;
     iface->AddRef                  = Voce_AddRef;
     iface->Release                 = Voce_Release;
-    iface->Initialize              = Voce_InitializeWithObjectID;
+    iface->Initialize              = Voce_Initialize;
     iface->CreateDevice            = Voce_CreateDevice;
     iface->DestroyDevice           = Voce_DestroyDevice;
     iface->AddDeviceClient         = NULL;
@@ -669,8 +626,6 @@ void *AudioServerPlugInBundleEntry(CFAllocatorRef inAllocator, CFUUIDRef inReque
     iface->BeginIOOperation        = Voce_BeginIOOperation;
     iface->DoIOOperation           = Voce_DoIOOperation;
     iface->EndIOOperation          = Voce_EndIOOperation;
-    iface->AddPropertyListener     = Voce_AddPropertyListener;
-    iface->RemovePropertyListener  = Voce_RemovePropertyListener;
 
     gDriver.mInterface = iface;
     gDriver.mShmFd     = -1;
