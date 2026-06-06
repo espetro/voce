@@ -13,7 +13,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            threshold: 0.65,
+            threshold: 0.75,
             vote_window: 3,
         }
     }
