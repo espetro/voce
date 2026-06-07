@@ -1,5 +1,4 @@
 // Enrollment recording session — Phase 4
-// Stub for Phase 0 compilation.
 
 pub const TARGET_DURATION_SAMPLES: u32 = 16000 * 20; // 20 s at 16000 Hz
 pub const MIN_SPEECH_SAMPLES: u32 = 16000 * 10;      // 10 s minimum speech
@@ -70,7 +69,6 @@ mod tests {
     #[test]
     fn complete_with_sufficient_speech() {
         let mut s = EnrollmentSession::new();
-        // Push TARGET_DURATION_SAMPLES samples all as speech
         let total_chunks = (TARGET_DURATION_SAMPLES as usize + CHUNK - 1) / CHUNK;
         let status = push_n_chunks(&mut s, total_chunks, true);
         assert!(matches!(status, EnrollmentStatus::Complete { .. }));
@@ -79,7 +77,6 @@ mod tests {
     #[test]
     fn invalid_with_insufficient_speech() {
         let mut s = EnrollmentSession::new();
-        // Fill total duration but mark nothing as speech
         let total_chunks = (TARGET_DURATION_SAMPLES as usize + CHUNK - 1) / CHUNK;
         let status = push_n_chunks(&mut s, total_chunks, false);
         assert!(matches!(status, EnrollmentStatus::Invalid { reason: "insufficient_speech" }));
@@ -88,7 +85,6 @@ mod tests {
     #[test]
     fn in_progress_before_target_duration() {
         let mut s = EnrollmentSession::new();
-        // Push half the target
         let half_chunks = (TARGET_DURATION_SAMPLES as usize / CHUNK) / 2;
         let status = push_n_chunks(&mut s, half_chunks, true);
         assert!(matches!(status, EnrollmentStatus::InProgress { .. }));

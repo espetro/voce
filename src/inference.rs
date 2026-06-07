@@ -137,7 +137,8 @@ pub async fn run(
                         test_capture: None,
                     };
                     gate_state.store(true, Ordering::Relaxed);
-                    let _ = proxy.send_event(AppEvent::StateChanged(AppState::Filtering));
+                    // Caller manages the UI state transition — don't emit here or it
+                    // races against TestReady / ActiveStandby already queued by the caller.
                 }
 
                 InferenceCmd::StopFilter => {
@@ -338,12 +339,14 @@ async fn compute_and_save_profile(
             match profile.save(&path) {
                 Ok(()) => {
                     info!("Voice profile saved to {}", path.display());
-                    let _ = proxy.send_event(AppEvent::StateChanged(AppState::TestReady));
-
+                    // Start the filter first so it is running when the test screen appears.
+                    // StateChanged(TestReady) is queued after so it is not overwritten by
+                    // the Filtering state that StartFilter used to emit (now removed).
                     if let Some(arr) = profile.as_array() {
                         gate_state.store(true, Ordering::Relaxed);
                         let _ = proxy.send_event(AppEvent::EnrolledProfileReady(Box::new(arr)));
                     }
+                    let _ = proxy.send_event(AppEvent::StateChanged(AppState::TestReady));
                 }
                 Err(e) => error!("Failed to save voice profile: {e}"),
             }
