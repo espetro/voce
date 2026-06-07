@@ -14,7 +14,17 @@ UV         := uv
 
 MSC_DIR ?= $(HOME)/Downloads/Multi-stream Spontaneous Conversation Training Dataset
 
-.PHONY: eval-setup eval-run eval-run-debug eval-threshold eval-alimeeting-setup eval-alimeeting-run eval-alimeeting-sweep eval-alimeeting-clean eval-msc-setup eval-msc-run eval-msc-sweep eval-msc-clean
+.PHONY: eval-setup eval-run eval-run-debug eval-threshold eval-alimeeting-setup eval-alimeeting-run eval-alimeeting-sweep eval-alimeeting-clean eval-msc-setup eval-msc-run eval-msc-sweep eval-msc-clean eval-validate-ac
+
+## Validate TASK-6 AC#1 and AC#2 with your own recordings.
+## Usage: make -f eval/Makefile eval-validate-ac ENROLL1=me.wav OTHER=other.wav
+## Optionally: ENROLL2=me2.wav for a two-recording enrollment.
+eval-validate-ac:
+	@if [ -z "$(ENROLL1)" ] || [ -z "$(OTHER)" ]; then \
+		echo "Usage: make -f eval/Makefile eval-validate-ac ENROLL1=<wav> OTHER=<wav> [ENROLL2=<wav>]"; \
+		exit 1; \
+	fi
+	eval/validate-ac.sh "$(ENROLL1)" $(if $(ENROLL2),"$(ENROLL2)") "$(OTHER)"
 
 ## Create venv, install Python deps, download LibriSpeech, generate fixtures,
 ## and build the release binary.

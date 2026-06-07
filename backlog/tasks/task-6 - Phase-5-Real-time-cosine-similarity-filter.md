@@ -22,7 +22,7 @@ Replace audio passthrough with speaker identity gate. SlidingVoteGate (3-frame h
 - [x] process_window() pipeline (silence → VAD → embedding → cosine → gate) — inference.rs
 - [x] AtomicBool gate_state updated per frame; output callback reads it (no lock/alloc) — audio/output.rs
 - [x] Fix default threshold 0.65 → 0.75 — config.rs
-- [ ] Validate AC#1–3 end-to-end (see verification steps in plan)
+- [ ] Validate AC#1–3 end-to-end — `./eval/validate-ac.sh <enroll1.wav> [enroll2.wav] <other.wav>`
 <!-- SECTION:PLAN:END -->
 
 ## Acceptance Criteria
