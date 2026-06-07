@@ -144,7 +144,8 @@ pub async fn run(
                     info!("Stopping filter");
                     gate_state.store(true, Ordering::Relaxed); // fail-open
                     mode = Mode::Idle;
-                    let _ = proxy.send_event(AppEvent::StateChanged(AppState::ActiveStandby));
+                    // Caller (main.rs) drives the next state — don't emit ActiveStandby here
+                    // or it will race against and overwrite any OnboardingReady the caller sends.
                 }
 
                 InferenceCmd::StartTest => {
