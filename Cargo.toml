@@ -58,8 +58,11 @@ image = { version = "0.25", default-features = false, features = ["png"] }
 # WAV reading for --eval mode
 hound = "3.5"
 
-# Audio resampling for --eval mode (LibriSpeech is 16 kHz; pipeline needs 22050 Hz)
+# Audio resampling for --eval mode and ANC denoiser 16k↔48k path
 rubato = "0.15"
+
+# RNNoise-based speech denoiser (runs at 48 kHz; we resample into it)
+nnnoiseless = "0.3"
 
 # POSIX shm_open / mmap for VoceAudio driver ring buffer
 libc = "0.2"

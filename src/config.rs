@@ -8,13 +8,19 @@ pub struct Config {
     pub threshold: f32,
     /// Number of consecutive below-threshold frames before muting (default 3).
     pub vote_window: usize,
+    /// Whether to run the nnnoiseless denoiser before speaker embedding (default true).
+    #[serde(default = "default_true")]
+    pub noise_suppression: bool,
 }
+
+fn default_true() -> bool { true }
 
 impl Default for Config {
     fn default() -> Self {
         Self {
             threshold: 0.75,
             vote_window: 3,
+            noise_suppression: true,
         }
     }
 }
