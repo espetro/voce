@@ -24,7 +24,7 @@ use std::sync::{
 use tracing::{debug, error, info, warn};
 use winit::event_loop::EventLoopProxy;
 
-/// Result of processing one 22050-sample window through the full pipeline.
+/// Result of processing one 16000-sample window through the full pipeline.
 pub struct FrameResult {
     /// Cosine similarity vs. enrolled embedding (0.0 if non-speech or silent).
     pub similarity: f32,
@@ -34,7 +34,7 @@ pub struct FrameResult {
     pub is_nonspeech: bool,
 }
 
-/// Run one pre-accumulated 22050-sample window through VAD → embedder → gate.
+/// Run one pre-accumulated 16000-sample window through VAD → embedder → gate.
 ///
 /// Returns `Ok(None)` when the window is below the fast-silence energy threshold
 /// (gate is not updated; caller should treat as pass).  Returns `Ok(Some(r))`
@@ -54,7 +54,7 @@ pub async fn process_window(
     }
 
     // Neural VAD: probability that this window contains speech
-    let speech_prob = models.vad.speech_probability_22050(window).await.unwrap_or(0.0);
+    let speech_prob = models.vad.speech_probability_16000(window).await.unwrap_or(0.0);
     if speech_prob < 0.5 {
         return Ok(Some(FrameResult { similarity: 0.0, passed: true, is_nonspeech: true }));
     }
@@ -153,7 +153,7 @@ pub async fn run(
                     if let Mode::Filtering { test_capture, .. } = &mut mode {
                         info!("Starting test capture (filter continues running)");
                         *test_capture = Some(TestCapture {
-                            buffer: Vec::with_capacity(22050 * 30),
+                            buffer: Vec::with_capacity(16000 * 30),
                             elapsed_samples: 0,
                         });
                         let _ = proxy.send_event(AppEvent::StateChanged(AppState::Testing));
@@ -302,11 +302,11 @@ async fn process_chunk(
                 tc.elapsed_samples += chunk.samples.len();
 
                 if chunk.seq % 22 == 0 {
-                    let elapsed_s = (tc.elapsed_samples / 22050) as u32;
+                    let elapsed_s = (tc.elapsed_samples / 16000) as u32;
                     let _ = proxy.send_event(AppEvent::TestProgress { elapsed_s });
                 }
 
-                if tc.elapsed_samples >= 22050 * 30 {
+                if tc.elapsed_samples >= 16000 * 30 {
                     // 30-second safety cap — stop even if user forgets to press Stop
                     let captured = std::mem::take(&mut tc.buffer);
                     *test_capture = None;
