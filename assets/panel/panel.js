@@ -117,6 +117,17 @@ window.__voce_update = function(jsonStr) {
       break;
     }
 
+    case 'test_stats': {
+      const pct = msg.voice_pct || 0;
+      let label;
+      if (pct >= 80) label = 'Crystal clear';
+      else if (pct >= 60) label = 'Crisp and defined';
+      else if (pct >= 40) label = 'Coming through';
+      else label = 'Try re-enrolling';
+      setText('test-quality-label', label);
+      break;
+    }
+
     default:
       console.log('[voce] unhandled event:', msg);
   }
@@ -150,6 +161,9 @@ function handleStateChanged(state) {
       break;
     case 'PLAYING_BACK':
       showScreen('screen-playback');
+      break;
+    case 'PLAYING_BACK_RAW':
+      showScreen('screen-playback-raw');
       break;
     case 'ACTIVE_STANDBY':
     case 'FILTERING':

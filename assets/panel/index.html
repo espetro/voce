@@ -313,14 +313,27 @@ body {
 </div>
 
 <!-- ================================================================ -->
-<!-- PLAYING_BACK screen                                               -->
+<!-- PLAYING_BACK screen (filtered)                                    -->
 <!-- ================================================================ -->
 <div id="screen-playback" class="screen">
   <div class="status-row">
     <div class="dot green pulse"></div>
-    <span>Playing back filtered audio…</span>
+    <span>Playing your filtered voice…</span>
   </div>
   <div class="body-text">Listen — only your voice should come through.</div>
+  <button class="btn btn-secondary" onclick="send({cmd:'stop_playback'})">Stop</button>
+</div>
+
+<!-- ================================================================ -->
+<!-- PLAYING_BACK_RAW screen (unfiltered)                              -->
+<!-- ================================================================ -->
+<div id="screen-playback-raw" class="screen">
+  <div class="status-row">
+    <div class="dot green pulse"></div>
+    <span>Playing original mic audio…</span>
+  </div>
+  <div class="body-text">This is the unfiltered audio — including all voices.</div>
+  <button class="btn btn-secondary" onclick="send({cmd:'stop_playback'})">Stop</button>
 </div>
 
 <!-- ================================================================ -->
@@ -331,7 +344,11 @@ body {
     <div class="dot green"></div>
     <span>How did it sound?</span>
   </div>
-  <button class="btn btn-secondary" onclick="send({cmd:'replay_test'})">Replay</button>
+  <div class="quality-row" style="text-align: center; margin: 12px 0; padding: 8px 0; border-bottom: 1px solid #3a3a3c;">
+    <span id="test-quality-label" style="font-size: 14px; font-weight: 500; color: #0a84ff;">—</span>
+  </div>
+  <button class="btn btn-secondary" onclick="send({cmd:'replay_test'})">Replay filtered</button>
+  <button class="btn btn-secondary" onclick="send({cmd:'replay_test_raw'})">Play original</button>
   <button class="btn btn-secondary" onclick="send({cmd:'start_test'})">Re-test</button>
   <button class="btn btn-primary" onclick="send({cmd:'confirm_enrollment'})">Looks good — I'm done</button>
   <button class="btn btn-secondary" onclick="send({cmd:'reenroll'})">Re-enroll</button>
