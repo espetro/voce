@@ -1,0 +1,16 @@
+export type Screen =
+  | 'loading'
+  | 'onboarding-ready'
+  | 'recording-1'
+  | 'recording-1-invalid'
+  | 'recording-1-complete'
+  | 'recording-2'
+  | 'recording-2-invalid'
+  | 'adapting'
+  | 'test-ready'
+  | 'testing'
+  | 'playback-filtered'
+  | 'playback-raw'
+  | 'test-complete'
+  | 'active'
+  | 'settings';
