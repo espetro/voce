@@ -386,7 +386,6 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                         // Position near top-right as a reasonable default
                         w.set_outer_position(PhysicalPosition::new(1400.0f64, 30.0));
                         w.set_visible(true);
-                        w.focus_window();
                         self.panel_open = true;
                         let state_str = self.shared.lock().unwrap().app_state.as_js_str();
                         self.send_to_panel(&PanelEvent::StateChanged { state: state_str });
@@ -436,8 +435,12 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                 }
 
                 if let Some(tray) = &self.tray_icon {
-                    if is_filtering { let _ = tray.set_icon(Some(load_tray_icon_active())); }
-                    else            { let _ = tray.set_icon(Some(load_tray_icon_idle())); }
+                    let paused = self.filter_paused.load(Ordering::Relaxed);
+                    if is_filtering && !paused {
+                        let _ = tray.set_icon(Some(load_tray_icon_active()));
+                    } else {
+                        let _ = tray.set_icon(Some(load_tray_icon_idle()));
+                    }
                 }
             }
 
@@ -619,6 +622,13 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                 if let Some(item) = &self.filter_toggle_item {
                     let label = if paused { "Resume filter" } else { "Pause filter" };
                     let _ = item.set_text(label);
+                }
+                if let Some(tray) = &self.tray_icon {
+                    if paused {
+                        let _ = tray.set_icon(Some(load_tray_icon_idle()));
+                    } else {
+                        let _ = tray.set_icon(Some(load_tray_icon_active()));
+                    }
                 }
             }
         }
