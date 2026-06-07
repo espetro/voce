@@ -7,24 +7,24 @@ const LABELS = ['Record your voice', 'Second sample', 'Test the filter'];
 function screenToStep(screen: Screen): number | null {
   switch (screen) {
     case 'onboarding-ready':
-      case 'recording-1':
-        case 'recording-1-invalid':
-          return 1
+    case 'recording-1':
+    case 'recording-1-invalid':
+    return 1
 
-        case 'recording-1-complete':
-          case 'recording-2':
-            case 'recording-2-invalid':
-              return 2
+    case 'recording-1-complete':
+    case 'recording-2':
+    case 'recording-2-invalid':
+    return 2
 
-            case 'test-ready':
-              case 'testing':
-                case 'playback-filtered':
-                  case 'playback-raw':
-                    case 'test-complete':
-                      return 3
+    case 'test-ready':
+    case 'testing':
+    case 'playback-filtered':
+    case 'playback-raw':
+    case 'test-complete':
+      return 3
 
-                      default:
-                        return null
+    default:
+      return null
   }
 }
 
