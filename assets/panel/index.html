@@ -302,11 +302,14 @@ body {
 <!-- ================================================================ -->
 <div id="screen-testing" class="screen">
   <div class="status-row">
-    <div class="dot green pulse"></div>
-    <span>Recording — <span id="test-elapsed">0</span>s recorded</span>
+    <div class="dot orange pulse"></div>
+    <span>Recording — <span id="test-remaining">10</span>s remaining</span>
   </div>
-  <div class="body-text">Speak naturally. Press Stop when you're done.</div>
-  <button class="btn btn-danger" onclick="send({cmd:'stop_test'})">Stop Recording</button>
+  <div class="progress-wrap">
+    <div id="test-bar" class="progress-bar" style="width:0%"></div>
+  </div>
+  <div class="body-text">Speak naturally. Voce will stop automatically.</div>
+  <button class="btn btn-danger" onclick="send({cmd:'stop_test'})">Stop early</button>
 </div>
 
 <!-- ================================================================ -->

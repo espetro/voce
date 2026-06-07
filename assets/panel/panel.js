@@ -85,7 +85,10 @@ window.__voce_update = function(jsonStr) {
 
     case 'test_progress': {
       const elapsed = msg.elapsed_s || 0;
-      setText('test-elapsed', elapsed);
+      const remaining = Math.max(0, 10 - elapsed);
+      const pct = Math.min(100, (elapsed / 10) * 100);
+      setText('test-remaining', remaining);
+      setWidth('test-bar', pct);
       break;
     }
 
