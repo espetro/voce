@@ -19,6 +19,8 @@ pub enum AppState {
     TestReady,
     /// Test recording in progress.
     Testing,
+    /// Captured audio is playing back through speakers.
+    PlayingBack,
     /// Enrolled and idle — filter running but mic not active.
     ActiveStandby,
     /// Filter actively processing speech.
@@ -37,6 +39,7 @@ impl AppState {
             AppState::Adapting => "ADAPTING",
             AppState::TestReady => "TEST_READY",
             AppState::Testing => "TESTING",
+            AppState::PlayingBack => "PLAYING_BACK",
             AppState::ActiveStandby => "ACTIVE_STANDBY",
             AppState::Filtering => "FILTERING",
         }

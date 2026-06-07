@@ -313,6 +313,17 @@ body {
 </div>
 
 <!-- ================================================================ -->
+<!-- PLAYING_BACK screen                                               -->
+<!-- ================================================================ -->
+<div id="screen-playback" class="screen">
+  <div class="status-row">
+    <div class="dot green pulse"></div>
+    <span>Playing back filtered audio…</span>
+  </div>
+  <div class="body-text">Listen — only your voice should come through.</div>
+</div>
+
+<!-- ================================================================ -->
 <!-- TEST_COMPLETE screen (after playback)                             -->
 <!-- ================================================================ -->
 <div id="screen-test-complete" class="screen">
@@ -320,6 +331,7 @@ body {
     <div class="dot green"></div>
     <span>How did it sound?</span>
   </div>
+  <button class="btn btn-secondary" onclick="send({cmd:'replay_test'})">Replay</button>
   <button class="btn btn-primary" onclick="send({cmd:'confirm_enrollment'})">Looks good — I'm done</button>
   <button class="btn btn-secondary" onclick="send({cmd:'reenroll'})">Re-enroll</button>
 </div>

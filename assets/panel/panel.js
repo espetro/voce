@@ -148,6 +148,9 @@ function handleStateChanged(state) {
       hasTestedOnce = true;
       showScreen('screen-testing');
       break;
+    case 'PLAYING_BACK':
+      showScreen('screen-playback');
+      break;
     case 'ACTIVE_STANDBY':
     case 'FILTERING':
       showScreen('screen-active');

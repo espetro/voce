@@ -87,6 +87,8 @@ struct VoceApp {
 
     _capture: Option<CaptureStream>,
     _output: Option<OutputStream>,
+
+    last_test_samples: Option<Vec<f32>>,
 }
 
 impl VoceApp {
@@ -112,6 +114,7 @@ impl VoceApp {
             inference_cmd_rx: Some(inf_cmd_rx),
             _capture: None,
             _output: None,
+            last_test_samples: None,
         }
     }
 
@@ -387,6 +390,7 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                         AppState::Adapting        => "Voce — adapting…",
                         AppState::TestReady       => "Voce — test your voice",
                         AppState::Testing         => "Voce — testing…",
+                        AppState::PlayingBack     => "Voce — playing back…",
                         AppState::ActiveStandby
                         | AppState::Filtering     => "Voce — active ●",
                         AppState::Idle            => "Voce",
@@ -493,6 +497,9 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                     PanelCmd::StopTest => {
                         let _ = self.inference_cmd_tx.send(InferenceCmd::StopTest);
                     }
+                    PanelCmd::ReplayTest => {
+                        let _ = self.proxy.send_event(AppEvent::ReplayTest);
+                    }
                     PanelCmd::ConfirmEnrollment => {
                         self.hide_panel();
                         let _ = self.proxy.send_event(AppEvent::StateChanged(AppState::ActiveStandby));
@@ -518,52 +525,67 @@ impl ApplicationHandler<AppEvent> for VoceApp {
             }
             AppEvent::TestCaptureComplete { samples } => {
                 info!("Test capture complete — playing back {} samples", samples.len());
+                self.last_test_samples = Some(samples.clone());
                 let proxy2 = self.proxy.clone();
-                self.tokio.spawn(async move {
-                    use rodio::buffer::SamplesBuffer;
-                    use rodio::cpal::traits::{DeviceTrait, HostTrait};
-
-                    // Prefer an explicit non-virtual speaker so playback is
-                    // audible even when Voce Microphone / BlackHole is the
-                    // system default output device.
-                    let host = rodio::cpal::default_host();
-                    let speaker = host.output_devices().ok().and_then(|mut devs| {
-                        devs.find(|d| {
-                            d.name()
-                                .map(|n| {
-                                    let n = n.to_lowercase();
-                                    !n.contains("blackhole") && !n.contains("voce")
-                                })
-                                .unwrap_or(false)
-                        })
-                    });
-
-                    let stream_result = if let Some(device) = speaker {
-                        info!("Test playback via: {}", device.name().unwrap_or_default());
-                        rodio::OutputStreamBuilder::from_device(device)
-                            .map_err(|e| anyhow::anyhow!("{e}"))
-                            .and_then(|b| b.open_stream().map_err(|e| anyhow::anyhow!("{e}")))
-                    } else {
-                        rodio::OutputStreamBuilder::open_default_stream()
-                            .map_err(|e| anyhow::anyhow!("{e}"))
-                    };
-
-                    match stream_result {
-                        Ok(stream) => {
-                            let sink = rodio::Sink::connect_new(stream.mixer());
-                            sink.append(SamplesBuffer::new(1u16, 16000u32, samples));
-                            sink.sleep_until_end();
-                            info!("Test playback complete");
-                        }
-                        Err(e) => warn!("Could not open audio output for playback: {e}"),
-                    }
-                    let _ = proxy2.send_event(AppEvent::StateChanged(AppState::TestReady));
-                });
+                let _ = proxy2.send_event(AppEvent::StateChanged(AppState::PlayingBack));
+                self.tokio.spawn(play_samples(samples, proxy2));
+            }
+            AppEvent::ReplayTest => {
+                if let Some(samples) = self.last_test_samples.clone() {
+                    info!("Replaying {} samples", samples.len());
+                    let proxy2 = self.proxy.clone();
+                    let _ = proxy2.send_event(AppEvent::StateChanged(AppState::PlayingBack));
+                    self.tokio.spawn(play_samples(samples, proxy2));
+                } else {
+                    warn!("ReplayTest requested but no samples stored");
+                }
             }
         }
     }
 
     fn about_to_wait(&mut self, _event_loop: &ActiveEventLoop) {}
+}
+
+// ---------------------------------------------------------------------------
+// Audio playback helper
+// ---------------------------------------------------------------------------
+
+async fn play_samples(samples: Vec<f32>, proxy: EventLoopProxy<AppEvent>) {
+    use rodio::buffer::SamplesBuffer;
+    use rodio::cpal::traits::{DeviceTrait, HostTrait};
+
+    let host = rodio::cpal::default_host();
+    let speaker = host.output_devices().ok().and_then(|mut devs| {
+        devs.find(|d| {
+            d.name()
+                .map(|n| {
+                    let n = n.to_lowercase();
+                    !n.contains("blackhole") && !n.contains("voce")
+                })
+                .unwrap_or(false)
+        })
+    });
+
+    let stream_result = if let Some(device) = speaker {
+        info!("Test playback via: {}", device.name().unwrap_or_default());
+        rodio::OutputStreamBuilder::from_device(device)
+            .map_err(|e| anyhow::anyhow!("{e}"))
+            .and_then(|b| b.open_stream().map_err(|e| anyhow::anyhow!("{e}")))
+    } else {
+        rodio::OutputStreamBuilder::open_default_stream()
+            .map_err(|e| anyhow::anyhow!("{e}"))
+    };
+
+    match stream_result {
+        Ok(stream) => {
+            let sink = rodio::Sink::connect_new(stream.mixer());
+            sink.append(SamplesBuffer::new(1u16, 16000u32, samples));
+            sink.sleep_until_end();
+            info!("Test playback complete");
+        }
+        Err(e) => warn!("Could not open audio output for playback: {e}"),
+    }
+    let _ = proxy.send_event(AppEvent::StateChanged(AppState::TestReady));
 }
 
 // ---------------------------------------------------------------------------

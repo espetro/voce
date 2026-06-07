@@ -18,9 +18,10 @@ pub enum AppEvent {
     OpenPanel,
     // Phase 4: profile ready after enrollment
     EnrolledProfileReady(Box<[f32; 256]>),
-    // Phase 6: test capture progress / completion
+    // Phase 6: test capture progress / completion / replay
     TestProgress { elapsed_s: u32 },
     TestCaptureComplete { samples: Vec<f32> },
+    ReplayTest,
 }
 
 /// Commands sent from the main thread → inference task.

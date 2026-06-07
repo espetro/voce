@@ -7,6 +7,7 @@ pub enum PanelCmd {
     StartRecording { index: u8 },
     StartTest,
     StopTest,
+    ReplayTest,
     ConfirmEnrollment,
     Reenroll,
     OpenBlackholeLink,
