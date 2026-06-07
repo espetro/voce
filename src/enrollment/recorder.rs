@@ -1,8 +1,8 @@
 // Enrollment recording session — Phase 4
 // Stub for Phase 0 compilation.
 
-pub const TARGET_DURATION_SAMPLES: u32 = 22050 * 20; // 20 s at 22050 Hz
-pub const MIN_SPEECH_SAMPLES: u32 = 22050 * 10;      // 10 s minimum speech
+pub const TARGET_DURATION_SAMPLES: u32 = 16000 * 20; // 20 s at 16000 Hz
+pub const MIN_SPEECH_SAMPLES: u32 = 16000 * 10;      // 10 s minimum speech
 
 #[derive(Debug)]
 pub enum EnrollmentStatus {
@@ -33,8 +33,8 @@ impl EnrollmentSession {
         }
         self.total_samples += chunk.len() as u32;
 
-        let elapsed_s = self.total_samples / 22050;
-        let speech_s = self.speech_samples / 22050;
+        let elapsed_s = self.total_samples / 16000;
+        let speech_s = self.speech_samples / 16000;
 
         if self.total_samples >= TARGET_DURATION_SAMPLES {
             if self.speech_samples >= MIN_SPEECH_SAMPLES {
