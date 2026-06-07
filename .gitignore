@@ -21,6 +21,10 @@ audio-driver/VoceAudio.driver/Contents/MacOS/
 # Install — Vite dependency cache
 install/.vite/
 
+# Panel — dependencies (dist/ is committed so Rust can compile without building panel first)
+assets/panel/node_modules/
+assets/panel/.vite/
+
 # Eval — raw multi-GB source recordings (derive clips into tests/ instead)
 eval/fixtures/alimeeting/audio/
 
@@ -33,6 +37,7 @@ __pycache__/
 .pytest_cache/
 *.egg-info/
 dist/
+!assets/panel/dist/
 build/
 
 # IDE

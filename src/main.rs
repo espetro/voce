@@ -34,9 +34,9 @@ use winit::{
     window::{Window, WindowAttributes, WindowId, WindowLevel},
 };
 
-// Panel HTML + JS embedded at compile time
-const PANEL_HTML: &str = include_str!("../assets/panel/index.html");
-const PANEL_JS: &str   = include_str!("../assets/panel/panel.js");
+// Panel: SolidJS app bundled to a single self-contained HTML by vite-plugin-singlefile.
+// Build first with: just build-panel
+const PANEL_HTML: &str = include_str!("../assets/panel/dist/index.html");
 
 // ---------------------------------------------------------------------------
 // Shared state
@@ -178,15 +178,9 @@ impl VoceApp {
             Err(e) => { error!("Failed to create panel window: {e}"); return; }
         };
 
-        // Inline panel.js into the HTML so wry serves a single document
-        let html = PANEL_HTML.replace(
-            r#"<script src="panel.js"></script>"#,
-            &format!("<script>{PANEL_JS}</script>"),
-        );
-
         let proxy_ipc = self.proxy.clone();
         let webview = wry::WebViewBuilder::new()
-            .with_html(html)
+            .with_html(PANEL_HTML)
             .with_ipc_handler(move |req: wry::http::Request<String>| {
                 let body = req.body();
                 match parse_cmd(body) {
