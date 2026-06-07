@@ -14,8 +14,8 @@ impl EmbedderWrapper {
         Ok(Self { inner })
     }
 
-    pub async fn extract_embedding(&mut self, window_22050: &[f32]) -> Result<[f32; 256]> {
-        self.inner.extract(window_22050).await
+    pub async fn extract_embedding(&mut self, window: &[f32]) -> Result<[f32; 256]> {
+        self.inner.extract(window).await
     }
 }
 
