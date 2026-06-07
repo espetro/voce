@@ -19,7 +19,7 @@ pub const BLACKHOLE_KEYWORD: &str = "blackhole";
 /// (e.g., driver not yet installed).
 pub struct OutputStream {
     _stream: Option<cpal::Stream>,
-    _ring:   Option<RingBufferWriter>,
+    _ring:   Option<Box<RingBufferWriter>>,
 }
 
 impl OutputStream {
@@ -32,7 +32,10 @@ impl OutputStream {
         match RingBufferWriter::open() {
             Ok(ring) => {
                 info!("Output: using VoceAudio ring buffer");
-                let stream = start_ring_stream(audio_rx, gate_state, &ring)?;
+                // Box before passing so the heap address is stable — the closure
+                // captures a raw pointer to it that must not be invalidated by a move.
+                let ring = Box::new(ring);
+                let stream = start_ring_stream(audio_rx, gate_state, ring.as_ref())?;
                 return Ok(Self {
                     _stream: Some(stream),
                     _ring:   Some(ring),
