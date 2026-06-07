@@ -1,16 +1,16 @@
 use std::collections::VecDeque;
 
-/// A single 512-sample chunk of mono f32 audio at 22050 Hz.
+/// A single 512-sample chunk of mono f32 audio at 16000 Hz.
 #[derive(Clone)]
 pub struct AudioChunk {
     pub samples: Box<[f32]>,
     pub seq: u64,
 }
 
-/// Accumulates incoming audio chunks and emits 1-second windows at 0.5-second hops.
+/// Accumulates incoming audio chunks and emits 3-second windows at 1.5-second hops.
 ///
-/// Window size: 22050 samples (1 s at 22050 Hz)
-/// Hop size:    11025 samples (0.5 s — 50% overlap)
+/// Window size: 48000 samples (3 s at 16000 Hz) — 3 s gives reliable speaker embeddings
+/// Hop size:    24000 samples (1.5 s — 50% overlap)
 pub struct EmbeddingWindowAccumulator {
     ring: VecDeque<f32>,
     samples_since_last_emit: usize,
@@ -21,10 +21,10 @@ pub struct EmbeddingWindowAccumulator {
 impl EmbeddingWindowAccumulator {
     pub fn new() -> Self {
         Self {
-            ring: VecDeque::with_capacity(22050 * 2),
+            ring: VecDeque::with_capacity(48000 * 2),
             samples_since_last_emit: 0,
-            window_size: 22050,
-            hop_size: 11025,
+            window_size: 48000,
+            hop_size: 24000,
         }
     }
 
@@ -64,8 +64,8 @@ impl EmbeddingWindowAccumulator {
 mod tests {
     use super::*;
 
-    const WINDOW: usize = 22050;
-    const HOP: usize = 11025;
+    const WINDOW: usize = 48000;
+    const HOP: usize = 24000;
     const CHUNK: usize = 512;
 
     #[test]
