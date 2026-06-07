@@ -214,7 +214,6 @@ impl VoceApp {
 
         window.set_outer_position(PhysicalPosition::new(x, y));
         window.set_visible(true);
-        window.focus_window();
         self.panel_open = true;
 
         // Push the current state to the panel so it shows the right screen
