@@ -8,6 +8,8 @@ pub enum PanelCmd {
     StartTest,
     StopTest,
     ReplayTest,
+    ReplayTestRaw,
+    StopPlayback,
     ConfirmEnrollment,
     Reenroll,
     OpenBlackholeLink,
@@ -25,6 +27,7 @@ pub enum PanelEvent {
     FilterStats { similarity: f32, is_passing: bool },
     BlackholeStatus { found: bool },
     DownloadProgress { fraction: f32 },
+    TestStats { voice_pct: f32 },
 }
 
 impl PanelEvent {
