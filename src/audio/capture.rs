@@ -9,7 +9,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use tracing::{info, warn};
 
-/// A live microphone capture stream at 22050 Hz mono f32.
+/// A live microphone capture stream at 16000 Hz mono f32.
 pub struct CaptureStream {
     _stream: cpal::Stream,
 }
@@ -90,7 +90,7 @@ impl CaptureStream {
 }
 
 fn pick_input_config(device: &cpal::Device) -> Result<StreamConfig> {
-    const TARGET: u32 = 22050;
+    const TARGET: u32 = 16000;
 
     let supported = device
         .supported_input_configs()
