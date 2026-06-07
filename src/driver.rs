@@ -21,7 +21,7 @@ use tracing::{info, warn};
 // ── Shared-memory layout (must match VoceAudio.c) ─────────────────────────────
 
 const SHM_NAME: &str = "/voce_audio_ring";
-const RING_CAP: usize = 22050 * 4; // 4 seconds of f32
+const RING_CAP: usize = 16000 * 4; // 4 seconds of f32
 
 /// Layout mirrors the `VoceRingBuffer` struct in VoceAudio.c.
 /// Mapped into both Rust (writer) and the HAL plugin (reader).
