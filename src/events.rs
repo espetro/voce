@@ -20,8 +20,10 @@ pub enum AppEvent {
     EnrolledProfileReady(Box<[f32; 256]>),
     // Phase 6: test capture progress / completion / replay
     TestProgress { elapsed_s: u32 },
-    TestCaptureComplete { samples: Vec<f32> },
+    TestCaptureComplete { samples: Vec<f32>, raw_samples: Vec<f32>, voice_pct: f32 },
     ReplayTest,
+    ReplayTestRaw,
+    StopPlayback,
 }
 
 /// Commands sent from the main thread → inference task.
