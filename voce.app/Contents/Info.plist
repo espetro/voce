@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>io.voce.app</string>
+    <key>CFBundleName</key>
+    <string>Voce</string>
+    <key>CFBundleDisplayName</key>
+    <string>Voce</string>
+    <key>CFBundleVersion</key>
+    <string>0.1.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>0.1.0</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+    <key>LSUIElement</key>
+    <true/>
+    <key>CFBundleIconFile</key>
+    <string>voce</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Voce needs microphone access to filter your voice on calls.</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+</dict>
+</plist>

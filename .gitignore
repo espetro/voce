@@ -11,7 +11,9 @@ target/
 .Trashes
 
 # Project-specific
-voce.app/
+# voce.app is the release template (tracked). Exclude only the compiled binary inside it.
+voce.app/Contents/MacOS/
+voce.app/Contents/_CodeSignature/
 tmp/
 .osgrep/
 

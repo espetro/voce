@@ -5,10 +5,27 @@ import type { Screen } from '../types';
 const LABELS = ['Record your voice', 'Second sample', 'Test the filter'];
 
 function screenToStep(screen: Screen): number | null {
-  if (['onboarding-ready', 'recording-1', 'recording-1-invalid'].includes(screen)) return 1;
-  if (['recording-1-complete', 'recording-2', 'recording-2-invalid'].includes(screen)) return 2;
-  if (['test-ready', 'testing', 'playback-filtered', 'playback-raw', 'test-complete'].includes(screen)) return 3;
-  return null;
+  switch (screen) {
+    case 'onboarding-ready':
+      case 'recording-1':
+        case 'recording-1-invalid':
+          return 1
+
+        case 'recording-1-complete':
+          case 'recording-2':
+            case 'recording-2-invalid':
+              return 2
+
+            case 'test-ready':
+              case 'testing':
+                case 'playback-filtered':
+                  case 'playback-raw':
+                    case 'test-complete':
+                      return 3
+
+                      default:
+                        return null
+  }
 }
 
 const Footer: Component<{ screen: Screen }> = (props) => {
