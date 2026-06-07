@@ -88,7 +88,7 @@ fn start_ring_stream(
 
     let config = cpal::StreamConfig {
         channels: 1,
-        sample_rate: 22050,
+        sample_rate: 48000,
         buffer_size: cpal::BufferSize::Default,
     };
 
@@ -137,7 +137,7 @@ fn start_blackhole_stream(
 ) -> Result<cpal::Stream> {
     let config = cpal::StreamConfig {
         channels: 2,
-        sample_rate: 22050,
+        sample_rate: 16000,
         buffer_size: cpal::BufferSize::Default,
     };
 
