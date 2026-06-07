@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 use std::path::Path;
 use tracing::{debug, info, warn};
 
-const WINDOW: usize = 22050; // 1 s at 22050 Hz
-const HOP: usize = 11025;    // 0.5 s — 50% overlap
+const WINDOW: usize = 48000; // 3 s at 16000 Hz — longer windows give better speaker embeddings
+const HOP: usize = 24000;    // 1.5 s — 50% overlap
 
 #[derive(Serialize, Deserialize)]
 pub struct VoiceProfile {
