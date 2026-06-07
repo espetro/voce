@@ -70,6 +70,8 @@ pub async fn process_window(
 // Accumulation buffer for a 10-second test recording.
 struct TestCapture {
     buffer: Vec<f32>,
+    raw_buffer: Vec<f32>,
+    passed_chunks: usize,
     elapsed_samples: usize,
 }
 
@@ -156,6 +158,8 @@ pub async fn run(
                         info!("Starting test capture (filter continues running)");
                         *test_capture = Some(TestCapture {
                             buffer: Vec::with_capacity(16000 * 30),
+                            raw_buffer: Vec::with_capacity(16000 * 30),
+                            passed_chunks: 0,
                             elapsed_samples: 0,
                         });
                         let _ = proxy.send_event(AppEvent::StateChanged(AppState::Testing));
@@ -168,7 +172,17 @@ pub async fn run(
                     if let Mode::Filtering { test_capture, .. } = &mut mode {
                         if let Some(tc) = test_capture.take() {
                             info!("Test capture stopped ({} samples)", tc.buffer.len());
-                            let _ = proxy.send_event(AppEvent::TestCaptureComplete { samples: tc.buffer });
+                            let total_chunks = tc.elapsed_samples / 512;
+                            let voice_pct = if total_chunks > 0 {
+                                (tc.passed_chunks as f32 / total_chunks as f32) * 100.0
+                            } else {
+                                0.0
+                            };
+                            let _ = proxy.send_event(AppEvent::TestCaptureComplete {
+                                samples: tc.buffer,
+                                raw_samples: tc.raw_buffer,
+                                voice_pct,
+                            });
                         }
                     }
                 }
@@ -296,8 +310,12 @@ async fn process_chunk(
 
             // ---- Test capture: record gated audio alongside live filter ----
             if let Some(tc) = test_capture {
+                // Always record raw audio
+                tc.raw_buffer.extend_from_slice(&chunk.samples);
+                // Record filtered audio (passed or zeros)
                 if pass {
                     tc.buffer.extend_from_slice(&chunk.samples);
+                    tc.passed_chunks += 1;
                 } else {
                     tc.buffer.extend(std::iter::repeat(0.0f32).take(chunk.samples.len()));
                 }
@@ -310,9 +328,20 @@ async fn process_chunk(
 
                 if tc.elapsed_samples >= 16000 * 10 {
                     // 10-second safety cap — stop even if user forgets to press Stop
+                    let total_chunks = tc.elapsed_samples / 512;
+                    let voice_pct = if total_chunks > 0 {
+                        (tc.passed_chunks as f32 / total_chunks as f32) * 100.0
+                    } else {
+                        0.0
+                    };
                     let captured = std::mem::take(&mut tc.buffer);
+                    let captured_raw = std::mem::take(&mut tc.raw_buffer);
                     *test_capture = None;
-                    let _ = proxy.send_event(AppEvent::TestCaptureComplete { samples: captured });
+                    let _ = proxy.send_event(AppEvent::TestCaptureComplete {
+                        samples: captured,
+                        raw_samples: captured_raw,
+                        voice_pct,
+                    });
                 }
             }
         }
