@@ -552,7 +552,7 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                     match stream_result {
                         Ok(stream) => {
                             let sink = rodio::Sink::connect_new(stream.mixer());
-                            sink.append(SamplesBuffer::new(1u16, 22050u32, samples));
+                            sink.append(SamplesBuffer::new(1u16, 16000u32, samples));
                             sink.sleep_until_end();
                             info!("Test playback complete");
                         }
