@@ -31,25 +31,31 @@ export function createAppState() {
         break;
       case 'ONBOARDING_READY':
         setHasTestedOnce(false);
+        setFilterPaused(false);
         setScreen('onboarding-ready');
         break;
       case 'RECORDING_1':
         setRec1Elapsed(0);
+        setFilterPaused(false);
         setScreen('recording-1');
         break;
       case 'RECORDING_2':
         setRec2Elapsed(0);
+        setFilterPaused(false);
         setScreen('recording-2');
         break;
       case 'ADAPTING':
+        setFilterPaused(false);
         setScreen('adapting');
         break;
       case 'TEST_READY':
+        setFilterPaused(false);
         setScreen(hasTestedOnce() ? 'test-complete' : 'test-ready');
         break;
       case 'TESTING':
         setHasTestedOnce(true);
         setTestElapsed(0);
+        setFilterPaused(false);
         setScreen('testing');
         break;
       case 'PLAYING_BACK':

@@ -294,3 +294,14 @@ body {
   display: flex;
   align-items: center;
 }
+
+/* Settings footer with logo */
+.settings-footer {
+  display: flex;
+  justify-content: center;
+  padding: 28px 0 20px;
+}
+.settings-logo {
+  width: 140px;
+  opacity: 0.85;
+}

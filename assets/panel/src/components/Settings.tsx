@@ -3,6 +3,8 @@ import { ArrowLeft } from 'lucide-solid';
 import type { AppState } from '../hooks/useAppState';
 import type { IpcActions } from '../hooks/useIpc';
 import ToggleSwitch from './ToggleSwitch';
+import logoOff from '../assets/logo-off.svg';
+import logoOn from '../assets/logo-on.svg';
 
 interface Props {
   state: AppState;
@@ -40,6 +42,14 @@ const Settings: Component<Props> = (props) => (
 
     <hr class="divider" />
     <button class="btn btn-secondary" onclick={props.ipc.reenroll}>Re-enroll voice…</button>
+
+    <div class="settings-footer">
+      <img
+        src={props.state.filterPaused() ? logoOff : logoOn}
+        alt="Voce"
+        class="settings-logo"
+      />
+    </div>
   </div>
 );
 
