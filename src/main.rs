@@ -89,6 +89,8 @@ struct VoceApp {
     _output: Option<OutputStream>,
 
     last_test_samples: Option<Vec<f32>>,
+    last_test_raw_samples: Option<Vec<f32>>,
+    playback_stop: Arc<AtomicBool>,
 }
 
 impl VoceApp {
@@ -115,6 +117,8 @@ impl VoceApp {
             _capture: None,
             _output: None,
             last_test_samples: None,
+            last_test_raw_samples: None,
+            playback_stop: Arc::new(AtomicBool::new(false)),
         }
     }
 
@@ -390,7 +394,8 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                         AppState::Adapting        => "Voce — adapting…",
                         AppState::TestReady       => "Voce — test your voice",
                         AppState::Testing         => "Voce — testing…",
-                        AppState::PlayingBack     => "Voce — playing back…",
+                        AppState::PlayingBack
+                        | AppState::PlayingBackRaw => "Voce — playing back…",
                         AppState::ActiveStandby
                         | AppState::Filtering     => "Voce — active ●",
                         AppState::Idle            => "Voce",
@@ -500,6 +505,12 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                     PanelCmd::ReplayTest => {
                         let _ = self.proxy.send_event(AppEvent::ReplayTest);
                     }
+                    PanelCmd::ReplayTestRaw => {
+                        let _ = self.proxy.send_event(AppEvent::ReplayTestRaw);
+                    }
+                    PanelCmd::StopPlayback => {
+                        let _ = self.proxy.send_event(AppEvent::StopPlayback);
+                    }
                     PanelCmd::ConfirmEnrollment => {
                         self.hide_panel();
                         let _ = self.proxy.send_event(AppEvent::StateChanged(AppState::ActiveStandby));
@@ -523,22 +534,43 @@ impl ApplicationHandler<AppEvent> for VoceApp {
             AppEvent::TestProgress { elapsed_s } => {
                 self.send_to_panel(&PanelEvent::TestProgress { elapsed_s });
             }
-            AppEvent::TestCaptureComplete { samples } => {
+            AppEvent::TestCaptureComplete { samples, raw_samples, voice_pct } => {
                 info!("Test capture complete — playing back {} samples", samples.len());
                 self.last_test_samples = Some(samples.clone());
+                self.last_test_raw_samples = Some(raw_samples.clone());
+                self.send_to_panel(&PanelEvent::TestStats { voice_pct });
+                self.playback_stop.store(false, Ordering::Relaxed);
                 let proxy2 = self.proxy.clone();
+                let stop_flag = self.playback_stop.clone();
                 let _ = proxy2.send_event(AppEvent::StateChanged(AppState::PlayingBack));
-                self.tokio.spawn(play_samples(samples, proxy2));
+                self.tokio.spawn(play_samples(samples, stop_flag, proxy2));
             }
             AppEvent::ReplayTest => {
                 if let Some(samples) = self.last_test_samples.clone() {
                     info!("Replaying {} samples", samples.len());
+                    self.playback_stop.store(false, Ordering::Relaxed);
                     let proxy2 = self.proxy.clone();
+                    let stop_flag = self.playback_stop.clone();
                     let _ = proxy2.send_event(AppEvent::StateChanged(AppState::PlayingBack));
-                    self.tokio.spawn(play_samples(samples, proxy2));
+                    self.tokio.spawn(play_samples(samples, stop_flag, proxy2));
                 } else {
                     warn!("ReplayTest requested but no samples stored");
                 }
+            }
+            AppEvent::ReplayTestRaw => {
+                if let Some(samples) = self.last_test_raw_samples.clone() {
+                    info!("Replaying {} raw samples", samples.len());
+                    self.playback_stop.store(false, Ordering::Relaxed);
+                    let proxy2 = self.proxy.clone();
+                    let stop_flag = self.playback_stop.clone();
+                    let _ = proxy2.send_event(AppEvent::StateChanged(AppState::PlayingBackRaw));
+                    self.tokio.spawn(play_samples(samples, stop_flag, proxy2));
+                } else {
+                    warn!("ReplayTestRaw requested but no raw samples stored");
+                }
+            }
+            AppEvent::StopPlayback => {
+                self.playback_stop.store(true, Ordering::Relaxed);
             }
         }
     }
@@ -550,41 +582,62 @@ impl ApplicationHandler<AppEvent> for VoceApp {
 // Audio playback helper
 // ---------------------------------------------------------------------------
 
-async fn play_samples(samples: Vec<f32>, proxy: EventLoopProxy<AppEvent>) {
-    use rodio::buffer::SamplesBuffer;
-    use rodio::cpal::traits::{DeviceTrait, HostTrait};
+async fn play_samples(
+    samples: Vec<f32>,
+    stop: Arc<AtomicBool>,
+    proxy: EventLoopProxy<AppEvent>,
+) {
+    use std::time::Duration;
+    use std::thread;
 
-    let host = rodio::cpal::default_host();
-    let speaker = host.output_devices().ok().and_then(|mut devs| {
-        devs.find(|d| {
-            d.name()
-                .map(|n| {
-                    let n = n.to_lowercase();
-                    !n.contains("blackhole") && !n.contains("voce")
-                })
-                .unwrap_or(false)
-        })
-    });
+    let stop_clone = stop.clone();
+    let proxy_clone = proxy.clone();
+    tokio::task::spawn_blocking(move || {
+        use rodio::buffer::SamplesBuffer;
+        use rodio::cpal::traits::{DeviceTrait, HostTrait};
 
-    let stream_result = if let Some(device) = speaker {
-        info!("Test playback via: {}", device.name().unwrap_or_default());
-        rodio::OutputStreamBuilder::from_device(device)
-            .map_err(|e| anyhow::anyhow!("{e}"))
-            .and_then(|b| b.open_stream().map_err(|e| anyhow::anyhow!("{e}")))
-    } else {
-        rodio::OutputStreamBuilder::open_default_stream()
-            .map_err(|e| anyhow::anyhow!("{e}"))
-    };
+        let host = rodio::cpal::default_host();
+        let speaker = host.output_devices().ok().and_then(|mut devs| {
+            devs.find(|d| {
+                d.name()
+                    .map(|n| {
+                        let n = n.to_lowercase();
+                        !n.contains("blackhole") && !n.contains("voce")
+                    })
+                    .unwrap_or(false)
+            })
+        });
 
-    match stream_result {
-        Ok(stream) => {
-            let sink = rodio::Sink::connect_new(stream.mixer());
-            sink.append(SamplesBuffer::new(1u16, 16000u32, samples));
-            sink.sleep_until_end();
-            info!("Test playback complete");
+        let stream_result = if let Some(device) = speaker {
+            info!("Test playback via: {}", device.name().unwrap_or_default());
+            rodio::OutputStreamBuilder::from_device(device)
+                .map_err(|e| anyhow::anyhow!("{e}"))
+                .and_then(|b| b.open_stream().map_err(|e| anyhow::anyhow!("{e}")))
+        } else {
+            rodio::OutputStreamBuilder::open_default_stream()
+                .map_err(|e| anyhow::anyhow!("{e}"))
+        };
+
+        match stream_result {
+            Ok(stream) => {
+                let sink = rodio::Sink::connect_new(stream.mixer());
+                sink.append(SamplesBuffer::new(1u16, 16000u32, samples));
+                loop {
+                    if sink.empty() {
+                        break;
+                    }
+                    if stop_clone.load(Ordering::Relaxed) {
+                        sink.stop();
+                        break;
+                    }
+                    thread::sleep(Duration::from_millis(50));
+                }
+                info!("Test playback complete");
+            }
+            Err(e) => warn!("Could not open audio output for playback: {e}"),
         }
-        Err(e) => warn!("Could not open audio output for playback: {e}"),
-    }
+        stop_clone.store(false, Ordering::Relaxed);
+    }).await.ok();
     let _ = proxy.send_event(AppEvent::StateChanged(AppState::TestReady));
 }
 
