@@ -21,6 +21,8 @@ use std::sync::{
     Arc, Mutex,
 };
 use tracing::{error, info, warn};
+use clap::Parser;
+use std::path::PathBuf;
 
 type TokioHandle = tokio::runtime::Handle;
 
@@ -607,13 +609,27 @@ fn load_icon_from_png(png_bytes: &[u8]) -> tray_icon::Icon {
 // Entry point
 // ---------------------------------------------------------------------------
 
-/// Return the value of a named flag from the argument list, e.g.
-/// `flag_val(&args, "--output")` → `Some("/tmp/out.wav")`.
-fn flag_val<'a>(args: &'a [String], flag: &str) -> Option<&'a str> {
-    args.iter()
-        .position(|a| a == flag)
-        .and_then(|i| args.get(i + 1))
-        .map(String::as_str)
+#[derive(Parser)]
+#[command(name = "Voce")]
+#[command(version = env!("CARGO_PKG_VERSION"))]
+struct Args {
+    #[arg(long)]
+    eval_enroll: Option<PathBuf>,
+
+    #[arg(long)]
+    eval_enroll_2: Option<PathBuf>,
+
+    #[arg(long)]
+    eval_enroll_out: Option<PathBuf>,
+
+    #[arg(long)]
+    eval: Option<PathBuf>,
+
+    #[arg(long)]
+    output: Option<PathBuf>,
+
+    #[arg(long)]
+    enrollment: Option<PathBuf>,
 }
 
 fn init_eval_logging() {
@@ -635,31 +651,21 @@ fn build_rt() -> anyhow::Result<tokio::runtime::Runtime> {
 
 fn main() -> anyhow::Result<()> {
     // --- Early intercepts: eval modes bypass all GUI initialisation ---
-    let args: Vec<String> = std::env::args().collect();
+    let args = Args::parse();
 
     // --eval-enroll <wav> [--eval-enroll-2 <wav>] [--eval-enroll-out <path>]
-    if args.iter().any(|a| a == "--eval-enroll") {
-        let wav = flag_val(&args, "--eval-enroll")
-            .ok_or_else(|| anyhow::anyhow!("--eval-enroll requires a WAV file path"))?;
-        let wav2 = flag_val(&args, "--eval-enroll-2").map(std::path::PathBuf::from);
-        let out = flag_val(&args, "--eval-enroll-out").map(std::path::PathBuf::from);
+    if let Some(wav) = args.eval_enroll {
         init_eval_logging();
         let rt = build_rt()?;
-        let code = rt.block_on(eval::run_enroll_from_wav(std::path::PathBuf::from(wav), wav2, out))?;
+        let code = rt.block_on(eval::run_enroll_from_wav(wav, args.eval_enroll_2, args.eval_enroll_out))?;
         std::process::exit(code);
     }
 
     // --eval <wav> [--output <path>] [--enrollment <path>]
-    if let Some(wav) = flag_val(&args, "--eval") {
-        let output_path     = flag_val(&args, "--output").map(std::path::PathBuf::from);
-        let enrollment_path = flag_val(&args, "--enrollment").map(std::path::PathBuf::from);
+    if let Some(wav) = args.eval {
         init_eval_logging();
         let rt = build_rt()?;
-        let code = rt.block_on(eval::run_eval(
-            std::path::PathBuf::from(wav),
-            output_path,
-            enrollment_path,
-        ))?;
+        let code = rt.block_on(eval::run_eval(wav, args.output, args.enrollment))?;
         std::process::exit(code);
     }
 
