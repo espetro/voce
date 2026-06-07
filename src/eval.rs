@@ -23,8 +23,8 @@ use crate::{
 };
 
 const CHUNK_SIZE: usize = 512;
-const HOP: usize = 11025;
-const SAMPLE_RATE: f32 = 22050.0;
+const HOP: usize = 24000; // 1.5 s hop — matches EmbeddingWindowAccumulator
+const SAMPLE_RATE: f32 = 16000.0;
 
 // ---------------------------------------------------------------------------
 // Public entry points
@@ -67,8 +67,8 @@ pub async fn run_eval(
         .await
         .context("failed to load ONNX models")?;
 
-    // --- Read WAV and normalise to mono f32 at 22050 Hz ---
-    let samples = load_wav_as_f32_22050(&wav_path)?;
+    // --- Read WAV and normalise to mono f32 at 16000 Hz ---
+    let samples = load_wav_as_f32_16000(&wav_path)?;
 
     // --- Load threshold / vote_window from config ---
     let cfg = config::Config::load(&config::config_path()).unwrap_or_default();
@@ -134,7 +134,7 @@ pub async fn run_eval(
     }
 
     if let Some(ref path) = output_path {
-        write_wav_f32(path, &filtered, 22050)?;
+        write_wav_f32(path, &filtered, 16000)?;
     }
 
     Ok(0)
@@ -155,14 +155,14 @@ pub async fn run_enroll_from_wav(
         return Ok(1);
     }
 
-    let mut recordings = vec![load_wav_as_f32_22050(&wav_path)?];
+    let mut recordings = vec![load_wav_as_f32_16000(&wav_path)?];
 
     if let Some(ref p2) = wav_path2 {
         if !p2.exists() {
             eprintln!("error: file not found: {}", p2.display());
             return Ok(1);
         }
-        recordings.push(load_wav_as_f32_22050(p2)?);
+        recordings.push(load_wav_as_f32_16000(p2)?);
     }
 
     let models_dir = config::models_dir();
@@ -215,12 +215,12 @@ fn write_wav_f32(path: &PathBuf, samples: &[f32], sample_rate: u32) -> Result<()
     Ok(())
 }
 
-/// Load a WAV file as mono f32 samples at 22050 Hz.
+/// Load a WAV file as mono f32 samples at 16000 Hz.
 ///
 /// Handles 16-bit PCM int (LibriSpeech native), 32-bit PCM int, and 32-bit float.
 /// Collapses stereo to mono by averaging channels.
-/// Resamples to 22050 Hz with rubato if the source rate differs.
-fn load_wav_as_f32_22050(path: &PathBuf) -> Result<Vec<f32>> {
+/// Resamples to 16000 Hz with rubato if the source rate differs.
+fn load_wav_as_f32_16000(path: &PathBuf) -> Result<Vec<f32>> {
     let mut reader = hound::WavReader::open(path)
         .with_context(|| format!("cannot open WAV file: {}", path.display()))?;
     let spec = reader.spec();
@@ -257,23 +257,23 @@ fn load_wav_as_f32_22050(path: &PathBuf) -> Result<Vec<f32>> {
             .collect()
     };
 
-    if spec.sample_rate == 22050 {
+    if spec.sample_rate == 16000 {
         Ok(samples_mono)
     } else {
-        resample_to_22050(&samples_mono, spec.sample_rate as usize).with_context(|| {
+        resample_to_16000(&samples_mono, spec.sample_rate as usize).with_context(|| {
             format!(
-                "resampling from {} Hz to 22050 Hz failed",
+                "resampling from {} Hz to 16000 Hz failed",
                 spec.sample_rate
             )
         })
     }
 }
 
-/// Resample mono f32 audio from `from_rate` Hz to 22050 Hz using rubato FftFixedIn.
+/// Resample mono f32 audio from `from_rate` Hz to 16000 Hz using rubato FftFixedIn.
 ///
 /// Processes in 4096-sample chunks for memory efficiency.  The output is trimmed
 /// to the expected length (extra samples arise from zero-padding the final chunk).
-fn resample_to_22050(input: &[f32], from_rate: usize) -> Result<Vec<f32>> {
+fn resample_to_16000(input: &[f32], from_rate: usize) -> Result<Vec<f32>> {
     use rubato::{FftFixedIn, Resampler};
 
     if input.is_empty() {
@@ -281,11 +281,11 @@ fn resample_to_22050(input: &[f32], from_rate: usize) -> Result<Vec<f32>> {
     }
 
     const CHUNK: usize = 4096;
-    let mut resampler = FftFixedIn::<f32>::new(from_rate, 22050, CHUNK, 2, 1)
+    let mut resampler = FftFixedIn::<f32>::new(from_rate, 16000, CHUNK, 2, 1)
         .context("failed to construct FftFixedIn resampler")?;
 
     let expected_out_len =
-        (input.len() as f64 * 22050.0 / from_rate as f64).ceil() as usize;
+        (input.len() as f64 * 16000.0 / from_rate as f64).ceil() as usize;
 
     // Pad input to a multiple of CHUNK
     let remainder = input.len() % CHUNK;
