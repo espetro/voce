@@ -678,21 +678,19 @@ fn main() -> anyhow::Result<()> {
     let voce_dir = config::voce_dir();
     std::fs::create_dir_all(&voce_dir)?;
 
-    let log_path = voce_dir.join("voce.log");
-    let log_file = std::fs::OpenOptions::new()
-        .create(true).append(true).open(&log_path)?;
+    let log_writer = tracing_appender::rolling::daily(&voce_dir, "voce.log");
 
     let filter = tracing_subscriber::EnvFilter::from_default_env()
         .add_directive("voce=debug".parse().unwrap());
 
     use tracing_subscriber::prelude::*;
     tracing_subscriber::registry()
-        .with(tracing_subscriber::fmt::layer().with_ansi(false).with_writer(log_file))
+        .with(tracing_subscriber::fmt::layer().with_ansi(false).with_writer(log_writer))
         .with(tracing_subscriber::fmt::layer().with_writer(std::io::stderr))
         .with(filter)
         .init();
 
-    info!("Voce v{} — log: {}", env!("CARGO_PKG_VERSION"), log_path.display());
+    info!("Voce v{} — logging to: {}", env!("CARGO_PKG_VERSION"), voce_dir.display());
 
     let rt = tokio::runtime::Builder::new_multi_thread()
         .worker_threads(2).enable_all().build()?;
