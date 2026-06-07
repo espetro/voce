@@ -1,6 +1,5 @@
 use anyhow::{Context, Result};
 use ndarray::{Array2, Axis};
-use rubato::{FftFixedIn, Resampler};
 use std::path::Path;
 
 use ort::ep::CoreML;
@@ -9,7 +8,6 @@ use ort::value::Tensor;
 
 pub struct WeSpeakerEmbedder {
     session: Session,
-    resampler: FftFixedIn<f32>,
 }
 
 impl WeSpeakerEmbedder {
@@ -21,24 +19,11 @@ impl WeSpeakerEmbedder {
             .commit_from_file(model_path)
             .context("Failed to load WeSpeaker ONNX model")?;
 
-        let resampler =
-            FftFixedIn::new(22050, 16000, 22050, 2, 1).context("Failed to create resampler")?;
-
-        Ok(Self { session, resampler })
+        Ok(Self { session })
     }
 
-    pub async fn extract(&mut self, window_22050: &[f32]) -> Result<[f32; 256]> {
-        // Clone data for the async block
-        let mut window_16k = vec![0.0f32; 16000];
-        self.resampler
-            .process_into_buffer(
-                &[window_22050],
-                std::slice::from_mut(&mut window_16k.as_mut_slice()),
-                None,
-            )
-            .context("Resampling failed")?;
-
-        let fbank = compute_fbank80(&window_16k)?;
+    pub async fn extract(&mut self, window: &[f32]) -> Result<[f32; 256]> {
+        let fbank = compute_fbank80(window)?;
         let input = fbank.insert_axis(Axis(0));
 
         let input_tensor = Tensor::from_array((input.shape().to_vec(), input.into_raw_vec()))
@@ -64,38 +49,35 @@ impl WeSpeakerEmbedder {
 }
 
 fn compute_fbank80(samples: &[f32]) -> Result<Array2<f32>> {
-    use kaldi_native_fbank::{FbankComputer, FbankOptions};
+    use kaldi_native_fbank::{FbankComputer, FbankOptions, OnlineFeature};
+    use kaldi_native_fbank::online::FeatureComputer;
 
+    // Match the WeSpeaker training pipeline: 80 mel bins, hamming window, no dither, no energy.
     let mut opts = FbankOptions::default();
     opts.mel_opts.num_bins = 80;
+    opts.use_energy = false;
+    opts.frame_opts.window_type = "hamming".to_string();
+    opts.frame_opts.dither = 0.0;
 
-    let mut computer = FbankComputer::new(opts)
+    let computer = FbankComputer::new(opts)
         .map_err(|e| anyhow::anyhow!("Failed to create FbankComputer: {}", e))?;
+    let dim = computer.dim();
 
-    let frame_length_samples = 400;
-    let frame_shift_samples = 160;
-    let num_frames = (samples.len() - frame_length_samples) / frame_shift_samples + 1;
+    // OnlineFeature applies extract_window() (dither, DC removal, preemphasis, windowing)
+    // before calling FbankComputer::compute() — the correct usage path.
+    let mut online = OnlineFeature::new(FeatureComputer::Fbank(computer));
+    online.accept_waveform(16000.0, samples);
+    online.input_finished();
 
+    let num_frames = online.num_frames_ready();
     if num_frames == 0 {
         anyhow::bail!("No frames extracted from audio");
     }
 
-    let mut fbank = Array2::zeros((num_frames, 80));
-
+    let mut fbank = Array2::zeros((num_frames, dim));
     for i in 0..num_frames {
-        let start = i * frame_shift_samples;
-        let end = start + frame_length_samples;
-
-        if end > samples.len() {
-            break;
-        }
-
-        let mut frame = samples[start..end].to_vec();
-        let mut feature = vec![0.0f32; 80];
-
-        computer.compute(0.0, 1.0, &mut frame, &mut feature);
-
-        for (j, &val) in feature.iter().enumerate() {
+        let frame = online.get_frame(i).unwrap();
+        for (j, &val) in frame.iter().enumerate() {
             fbank[[i, j]] = val;
         }
     }
