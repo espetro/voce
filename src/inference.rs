@@ -5,7 +5,10 @@
 
 use crate::{
     app_state::AppState,
-    audio::buffer::{AudioChunk, EmbeddingWindowAccumulator},
+    audio::{
+        buffer::{AudioChunk, EmbeddingWindowAccumulator},
+        denoise::Denoiser,
+    },
     config,
     enrollment::{
         profile::compute_profile,
@@ -102,6 +105,8 @@ pub async fn run(
     audio_rx: Receiver<AudioChunk>,
     cmd_rx: Receiver<InferenceCmd>,
     gate_state: Arc<AtomicBool>,
+    filter_paused: Arc<AtomicBool>,
+    mut denoiser: Denoiser,
     proxy: EventLoopProxy<AppEvent>,
 ) {
     info!("Inference task started");
@@ -192,12 +197,20 @@ pub async fn run(
         // ---- Process audio chunks (drain up to 20 per iteration) ----
         let mut chunks_processed = 0;
         while let Ok(chunk) = audio_rx.try_recv() {
+            let denoised = denoiser.process_chunk(&chunk.samples);
+            if denoised.is_empty() {
+                chunks_processed += 1;
+                if chunks_processed >= 20 { break; }
+                continue;
+            }
+            let chunk = AudioChunk { samples: denoised.into_boxed_slice(), seq: chunk.seq };
             process_chunk(
                 &chunk,
                 &mut mode,
                 &mut models,
                 &mut enrollment_buffers,
                 &gate_state,
+                &filter_paused,
                 &proxy,
                 &mut stats_sample_counter,
             )
@@ -217,6 +230,7 @@ async fn process_chunk(
     models: &mut ModelSet,
     enrollment_buffers: &mut Vec<Vec<f32>>,
     gate_state: &Arc<AtomicBool>,
+    filter_paused: &Arc<AtomicBool>,
     proxy: &EventLoopProxy<AppEvent>,
     stats_counter: &mut u32,
 ) {
@@ -269,43 +283,47 @@ async fn process_chunk(
             // Compute whether this chunk passes the gate.
             // We avoid early `return` here so test_capture always gets updated.
             let pass: bool;
-            let is_silence = VadWrapper::is_silence_fast(&chunk.samples);
 
-            if is_silence {
+            if filter_paused.load(Ordering::Relaxed) {
+                // Filter paused — fail-open, skip embedding
                 gate_state.store(true, Ordering::Relaxed);
                 pass = true;
-            } else if let Some(window) = accumulator.push_chunk(&chunk.samples) {
-                // Full embedding window available — delegate to the shared pipeline
-                match process_window(&window, models, enrolled, gate).await {
-                    Ok(None) => {
-                        // Silent window — fail-open
-                        gate_state.store(true, Ordering::Relaxed);
-                        pass = true;
-                    }
-                    Ok(Some(result)) => {
-                        gate_state.store(result.passed, Ordering::Relaxed);
-                        pass = result.passed;
+            } else {
+                let is_silence = VadWrapper::is_silence_fast(&chunk.samples);
 
-                        if !result.is_nonspeech {
-                            *stats_counter += 1;
-                            if *stats_counter >= 22 {
-                                *stats_counter = 0;
-                                let _ = proxy.send_event(AppEvent::FilterStats {
-                                    similarity: result.similarity,
-                                    passing: result.passed,
-                                });
+                if is_silence {
+                    gate_state.store(true, Ordering::Relaxed);
+                    pass = true;
+                } else if let Some(window) = accumulator.push_chunk(&chunk.samples) {
+                    match process_window(&window, models, enrolled, gate).await {
+                        Ok(None) => {
+                            gate_state.store(true, Ordering::Relaxed);
+                            pass = true;
+                        }
+                        Ok(Some(result)) => {
+                            gate_state.store(result.passed, Ordering::Relaxed);
+                            pass = result.passed;
+
+                            if !result.is_nonspeech {
+                                *stats_counter += 1;
+                                if *stats_counter >= 22 {
+                                    *stats_counter = 0;
+                                    let _ = proxy.send_event(AppEvent::FilterStats {
+                                        similarity: result.similarity,
+                                        passing: result.passed,
+                                    });
+                                }
                             }
                         }
+                        Err(e) => {
+                            warn!("process_window error: {e}");
+                            gate_state.store(true, Ordering::Relaxed);
+                            pass = true;
+                        }
                     }
-                    Err(e) => {
-                        warn!("process_window error: {e}");
-                        gate_state.store(true, Ordering::Relaxed);
-                        pass = true;
-                    }
+                } else {
+                    pass = gate_state.load(Ordering::Relaxed);
                 }
-            } else {
-                // Window not yet full — read current gate state without changing it
-                pass = gate_state.load(Ordering::Relaxed);
             }
 
             // ---- Test capture: record gated audio alongside live filter ----

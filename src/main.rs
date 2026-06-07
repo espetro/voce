@@ -11,7 +11,7 @@ mod model;
 mod panel;
 
 use app_state::AppState;
-use audio::{buffer::AudioChunk, capture::CaptureStream, output::OutputStream};
+use audio::{buffer::AudioChunk, capture::CaptureStream, denoise::Denoiser, output::OutputStream};
 use events::{AppEvent, InferenceCmd};
 use panel::ipc::{PanelCmd, PanelEvent, parse_cmd};
 
@@ -70,11 +70,14 @@ struct VoceApp {
     tokio: TokioHandle,
     tray_icon: Option<tray_icon::TrayIcon>,
     status_item: Option<muda::MenuItem>,
+    filter_toggle_item: Option<muda::MenuItem>,
     panel_window: Option<Window>,
     webview: Option<wry::WebView>,
     panel_open: bool,
 
     gate_state: Arc<AtomicBool>,
+    filter_paused: Arc<AtomicBool>,
+    noise_suppression: Arc<AtomicBool>,
     // BlackHole output channel
     audio_tx: Sender<AudioChunk>,
     audio_rx: Option<Receiver<AudioChunk>>,
@@ -98,16 +101,20 @@ impl VoceApp {
         let (audio_tx, audio_rx)             = bounded::<AudioChunk>(64);
         let (inf_audio_tx, inf_audio_rx)     = bounded::<AudioChunk>(64);
         let (inf_cmd_tx, inf_cmd_rx)         = bounded::<InferenceCmd>(32);
+        let cfg = config::Config::load(&config::config_path()).unwrap_or_default();
         Self {
             shared: Arc::new(Mutex::new(SharedState::new())),
             proxy,
             tokio,
             tray_icon: None,
             status_item: None,
+            filter_toggle_item: None,
             panel_window: None,
             webview: None,
             panel_open: false,
             gate_state: Arc::new(AtomicBool::new(true)),
+            filter_paused: Arc::new(AtomicBool::new(false)),
+            noise_suppression: Arc::new(AtomicBool::new(cfg.noise_suppression)),
             audio_tx,
             audio_rx: Some(audio_rx),
             inference_audio_tx: inf_audio_tx,
@@ -227,9 +234,15 @@ impl VoceApp {
         let state_str = self.shared.lock().unwrap().app_state.as_js_str();
         self.send_to_panel(&PanelEvent::StateChanged { state: state_str });
 
-        // Also push BlackHole status
+        // Push BlackHole status
         let found = self.shared.lock().unwrap().blackhole_found;
         self.send_to_panel(&PanelEvent::BlackholeStatus { found });
+
+        // Push filter and noise suppression state
+        let paused = self.filter_paused.load(Ordering::Relaxed);
+        self.send_to_panel(&PanelEvent::FilterPaused { paused });
+        let ns_enabled = self.noise_suppression.load(Ordering::Relaxed);
+        self.send_to_panel(&PanelEvent::NoiseSuppression { enabled: ns_enabled });
     }
 
     fn hide_panel(&mut self) {
@@ -251,8 +264,9 @@ impl ApplicationHandler<AppEvent> for VoceApp {
 
         // Tray icon
         let icon = load_tray_icon_loading();
-        let (menu, status_item) = build_tray_menu();
+        let (menu, status_item, filter_toggle_item) = build_tray_menu();
         self.status_item = Some(status_item);
+        self.filter_toggle_item = Some(filter_toggle_item);
         match tray_icon::TrayIconBuilder::new()
             .with_menu(Box::new(menu))
             .with_menu_on_left_click(false)
@@ -327,10 +341,19 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                     self.inference_audio_rx.take(),
                     self.inference_cmd_rx.take(),
                 ) {
-                    let gate  = self.gate_state.clone();
-                    let prx2  = self.proxy.clone();
-                    self.tokio.spawn(inference::run(m, audio_rx, cmd_rx, gate, prx2));
-                    info!("Inference task spawned");
+                    let gate   = self.gate_state.clone();
+                    let paused = self.filter_paused.clone();
+                    let prx2   = self.proxy.clone();
+                    let ns_flag = self.noise_suppression.clone();
+                    match Denoiser::new(ns_flag) {
+                        Ok(denoiser) => {
+                            self.tokio.spawn(inference::run(m, audio_rx, cmd_rx, gate, paused, denoiser, prx2));
+                            info!("Inference task spawned (with denoiser)");
+                        }
+                        Err(e) => {
+                            error!("Failed to create denoiser: {e} — inference task not started");
+                        }
+                    }
                 }
 
                 // Check for an existing enrolled profile (returning user)
@@ -375,6 +398,10 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                         self.send_to_panel(&PanelEvent::StateChanged { state: state_str });
                         let found = self.shared.lock().unwrap().blackhole_found;
                         self.send_to_panel(&PanelEvent::BlackholeStatus { found });
+                        let paused = self.filter_paused.load(Ordering::Relaxed);
+                        self.send_to_panel(&PanelEvent::FilterPaused { paused });
+                        let ns_enabled = self.noise_suppression.load(Ordering::Relaxed);
+                        self.send_to_panel(&PanelEvent::NoiseSuppression { enabled: ns_enabled });
                     }
                 }
             }
@@ -384,6 +411,7 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                 info!("State → {:?}", new_state);
                 let js_str = new_state.as_js_str();
                 let is_filtering = matches!(new_state, AppState::Filtering);
+                let filter_active = is_filtering || matches!(new_state, AppState::ActiveStandby);
 
                 // Update native tray menu status label
                 if let Some(item) = &self.status_item {
@@ -408,6 +436,11 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                     s.app_state = new_state;
                 }
                 self.send_to_panel(&PanelEvent::StateChanged { state: js_str });
+                // Enable filter toggle tray item only while filter is running
+                if let Some(item) = &self.filter_toggle_item {
+                    let _ = item.set_enabled(filter_active);
+                }
+
                 if let Some(tray) = &self.tray_icon {
                     if is_filtering { let _ = tray.set_icon(Some(load_tray_icon_active())); }
                     else            { let _ = tray.set_icon(Some(load_tray_icon_idle())); }
@@ -482,6 +515,11 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                         let _ = self.proxy.send_event(AppEvent::StateChanged(AppState::OnboardingReady));
                         let _ = self.proxy.send_event(AppEvent::OpenPanel);
                     }
+                    "toggle_filter" => {
+                        let paused = !self.filter_paused.load(Ordering::Relaxed);
+                        self.filter_paused.store(paused, Ordering::Relaxed);
+                        let _ = self.proxy.send_event(AppEvent::FilterPaused { paused });
+                    }
                     _ => {}
                 }
             }
@@ -520,6 +558,15 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                         if path.exists() { let _ = std::fs::remove_file(&path); }
                         let _ = self.inference_cmd_tx.send(InferenceCmd::StopFilter);
                         let _ = self.proxy.send_event(AppEvent::StateChanged(AppState::OnboardingReady));
+                    }
+                    PanelCmd::ToggleFilter => {
+                        let paused = !self.filter_paused.load(Ordering::Relaxed);
+                        self.filter_paused.store(paused, Ordering::Relaxed);
+                        let _ = self.proxy.send_event(AppEvent::FilterPaused { paused });
+                    }
+                    PanelCmd::SetNoiseSuppression { enabled } => {
+                        self.noise_suppression.store(enabled, Ordering::Relaxed);
+                        self.send_to_panel(&PanelEvent::NoiseSuppression { enabled });
                     }
                 }
             }
@@ -571,6 +618,14 @@ impl ApplicationHandler<AppEvent> for VoceApp {
             }
             AppEvent::StopPlayback => {
                 self.playback_stop.store(true, Ordering::Relaxed);
+            }
+
+            AppEvent::FilterPaused { paused } => {
+                self.send_to_panel(&PanelEvent::FilterPaused { paused });
+                if let Some(item) = &self.filter_toggle_item {
+                    let label = if paused { "Resume filter" } else { "Pause filter" };
+                    let _ = item.set_text(label);
+                }
             }
         }
     }
@@ -645,16 +700,18 @@ async fn play_samples(
 // Menu
 // ---------------------------------------------------------------------------
 
-fn build_tray_menu() -> (muda::Menu, muda::MenuItem) {
+fn build_tray_menu() -> (muda::Menu, muda::MenuItem, muda::MenuItem) {
     use muda::{Menu, MenuItem, PredefinedMenuItem};
     let menu   = Menu::new();
     let status = MenuItem::with_id("status", "Voce — loading…", false, None);
+    let filter_toggle = MenuItem::with_id("toggle_filter", "Pause filter", false, None);
     let _ = menu.append(&status);
     let _ = menu.append(&PredefinedMenuItem::separator());
+    let _ = menu.append(&filter_toggle);
     let _ = menu.append(&MenuItem::with_id("reenroll", "Re-enroll voice…", true, None));
     let _ = menu.append(&PredefinedMenuItem::separator());
     let _ = menu.append(&MenuItem::with_id("quit", "Quit Voce", true, None));
-    (menu, status)
+    (menu, status, filter_toggle)
 }
 
 // ---------------------------------------------------------------------------

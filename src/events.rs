@@ -24,6 +24,8 @@ pub enum AppEvent {
     ReplayTest,
     ReplayTestRaw,
     StopPlayback,
+    // Phase 8: filter toggle (emitted by main → panel)
+    FilterPaused { paused: bool },
 }
 
 /// Commands sent from the main thread → inference task.

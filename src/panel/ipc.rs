@@ -13,6 +13,9 @@ pub enum PanelCmd {
     ConfirmEnrollment,
     Reenroll,
     OpenBlackholeLink,
+    // Phase 8: filter and noise suppression toggles
+    ToggleFilter,
+    SetNoiseSuppression { enabled: bool },
 }
 
 /// Events sent from Rust → panel JS via `webview.evaluate_script(...)`.
@@ -28,6 +31,9 @@ pub enum PanelEvent {
     BlackholeStatus { found: bool },
     DownloadProgress { fraction: f32 },
     TestStats { voice_pct: f32 },
+    // Phase 8
+    FilterPaused { paused: bool },
+    NoiseSuppression { enabled: bool },
 }
 
 impl PanelEvent {

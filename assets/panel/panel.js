@@ -128,6 +128,24 @@ window.__voce_update = function(jsonStr) {
       break;
     }
 
+    case 'filter_paused': {
+      const toggle = document.getElementById('filter-toggle');
+      if (toggle) toggle.checked = !msg.paused;
+      const dot = document.getElementById('active-dot');
+      if (dot) {
+        dot.className = 'dot ' + (msg.paused ? 'grey' : 'green');
+      }
+      setText('active-label', msg.paused
+        ? 'Filter paused — all audio passing'
+        : 'Active — Voce Microphone');
+      if (msg.paused) setText('similarity-val', '—');
+      break;
+    }
+
+    case 'noise_suppression':
+      // No UI yet — wired up for Settings screen in next step
+      break;
+
     default:
       console.log('[voce] unhandled event:', msg);
   }
