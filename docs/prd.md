@@ -31,7 +31,7 @@ Apple Voice Isolation and tools like Krisp suppress ambient noise but do NOT dis
 #### ✅ Phase 1 — Audio I/O and BlackHole Passthrough
 - **Effort**: M
 - **Status**: Done (2026-03-27)
-- **Goal**: cpal mic input at 22050 Hz mono f32, BlackHole 2ch output, pass-through
+- **Goal**: cpal mic input → resampled to 16 000 Hz mono f32, BlackHole 2ch output, pass-through
 
 #### ✅ Phase 2 — ONNX Model Download and voxudio Wrappers
 - **Effort**: M
