@@ -306,8 +306,8 @@ async fn process_chunk(
                     let _ = proxy.send_event(AppEvent::TestProgress { elapsed_s });
                 }
 
-                if tc.elapsed_samples >= 16000 * 30 {
-                    // 30-second safety cap — stop even if user forgets to press Stop
+                if tc.elapsed_samples >= 16000 * 10 {
+                    // 10-second safety cap — stop even if user forgets to press Stop
                     let captured = std::mem::take(&mut tc.buffer);
                     *test_capture = None;
                     let _ = proxy.send_event(AppEvent::TestCaptureComplete { samples: captured });
