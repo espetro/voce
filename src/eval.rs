@@ -10,13 +10,13 @@
 //!
 //! Exit codes: 0 on success, 1 on any error.
 
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 use std::path::PathBuf;
 
 use crate::{
     audio::buffer::EmbeddingWindowAccumulator,
     config,
-    enrollment::profile::{VoiceProfile, compute_profile},
+    enrollment::profile::{compute_profile, VoiceProfile},
     filter::gate::SlidingVoteGate,
     inference::process_window,
     model::{ModelSet, VadWrapper},
@@ -126,7 +126,7 @@ pub async fn run_eval(
         // gate state; non-silent chunks follow the gate.
         if output_path.is_some() {
             if is_silent_chunk || !current_gate_pass {
-                filtered.extend(std::iter::repeat(0.0f32).take(chunk.len()));
+                filtered.extend(std::iter::repeat_n(0.0f32, chunk.len()));
             } else {
                 filtered.extend_from_slice(chunk);
             }
@@ -260,12 +260,8 @@ fn load_wav_as_f32_16000(path: &PathBuf) -> Result<Vec<f32>> {
     if spec.sample_rate == 16000 {
         Ok(samples_mono)
     } else {
-        resample_to_16000(&samples_mono, spec.sample_rate as usize).with_context(|| {
-            format!(
-                "resampling from {} Hz to 16000 Hz failed",
-                spec.sample_rate
-            )
-        })
+        resample_to_16000(&samples_mono, spec.sample_rate as usize)
+            .with_context(|| format!("resampling from {} Hz to 16000 Hz failed", spec.sample_rate))
     }
 }
 
@@ -284,8 +280,7 @@ fn resample_to_16000(input: &[f32], from_rate: usize) -> Result<Vec<f32>> {
     let mut resampler = FftFixedIn::<f32>::new(from_rate, 16000, CHUNK, 2, 1)
         .context("failed to construct FftFixedIn resampler")?;
 
-    let expected_out_len =
-        (input.len() as f64 * 16000.0 / from_rate as f64).ceil() as usize;
+    let expected_out_len = (input.len() as f64 * 16000.0 / from_rate as f64).ceil() as usize;
 
     // Pad input to a multiple of CHUNK
     let remainder = input.len() % CHUNK;
@@ -294,7 +289,7 @@ fn resample_to_16000(input: &[f32], from_rate: usize) -> Result<Vec<f32>> {
     let padded: Vec<f32> = input
         .iter()
         .copied()
-        .chain(std::iter::repeat(0.0f32).take(pad))
+        .chain(std::iter::repeat_n(0.0f32, pad))
         .collect();
 
     let mut output = Vec::with_capacity(expected_out_len + CHUNK);

@@ -19,7 +19,7 @@ pub const BLACKHOLE_KEYWORD: &str = "blackhole";
 /// (e.g., driver not yet installed).
 pub struct OutputStream {
     _stream: Option<cpal::Stream>,
-    _ring:   Option<Box<RingBufferWriter>>,
+    _ring: Option<Box<RingBufferWriter>>,
 }
 
 impl OutputStream {
@@ -38,31 +38,40 @@ impl OutputStream {
                 let stream = start_ring_stream(audio_rx, gate_state, ring.as_ref())?;
                 return Ok(Self {
                     _stream: Some(stream),
-                    _ring:   Some(ring),
+                    _ring: Some(ring),
                 });
             }
             Err(e) => warn!("Ring buffer unavailable ({e}); falling back to BlackHole"),
         }
 
         // Fallback: BlackHole
-        let device = find_blackhole_device()
-            .context("Neither VoceAudio ring buffer nor BlackHole 2ch found.\n\
-                      Run `make -C audio-driver reload` to install the virtual microphone.")?;
-        info!("Output fallback device: {}", device.name().unwrap_or_default());
+        let device = find_blackhole_device().context(
+            "Neither VoceAudio ring buffer nor BlackHole 2ch found.\n\
+                      Run `make -C audio-driver reload` to install the virtual microphone.",
+        )?;
+        info!(
+            "Output fallback device: {}",
+            device
+                .description()
+                .map(|d| d.name().to_string())
+                .unwrap_or_default()
+        );
         let stream = start_blackhole_stream(audio_rx, gate_state, &device)?;
         Ok(Self {
             _stream: Some(stream),
-            _ring:   None,
+            _ring: None,
         })
     }
 
     /// Returns the VoceAudio or BlackHole device if present (for status reporting).
+    #[allow(dead_code)]
     pub fn detect_output_device() -> bool {
         // Ring buffer existence means the HAL driver is installed and coreaudiod loaded it
         crate::driver::voce_device_found() || find_blackhole_device().is_some()
     }
 
     /// Legacy: returns true if a BlackHole-named output device exists.
+    #[allow(dead_code)]
     pub fn detect_blackhole() -> bool {
         find_blackhole_device().is_some()
     }
@@ -97,7 +106,8 @@ fn start_ring_stream(
     // for the lifetime of the stream.
     let ring_ptr = ring as *const RingBufferWriter as usize;
 
-    let mut mic_buf: std::collections::VecDeque<f32> = std::collections::VecDeque::with_capacity(4096);
+    let mut mic_buf: std::collections::VecDeque<f32> =
+        std::collections::VecDeque::with_capacity(4096);
 
     let stream = device
         .build_output_stream(
@@ -141,7 +151,8 @@ fn start_blackhole_stream(
         buffer_size: cpal::BufferSize::Default,
     };
 
-    let mut mic_buf: std::collections::VecDeque<f32> = std::collections::VecDeque::with_capacity(4096);
+    let mut mic_buf: std::collections::VecDeque<f32> =
+        std::collections::VecDeque::with_capacity(4096);
 
     let stream = device
         .build_output_stream(
@@ -178,28 +189,28 @@ fn start_blackhole_stream(
 pub fn find_blackhole_device() -> Option<cpal::Device> {
     let host = cpal::default_host();
     host.output_devices().ok()?.find(|d| {
-        d.name()
-            .map(|n| n.to_lowercase().contains(BLACKHOLE_KEYWORD))
+        d.description()
+            .map(|i| i.name().to_lowercase().contains(BLACKHOLE_KEYWORD))
             .unwrap_or(false)
     })
 }
 
 /// Find a real output device, skipping BlackHole and Voce virtual devices.
 /// Used to find a speaker for test audio playback.
+#[allow(dead_code)]
 pub fn find_speaker_device() -> Option<cpal::Device> {
     let host = cpal::default_host();
-    find_non_virtual_output_device(&host)
-        .or_else(|| host.default_output_device())
+    find_non_virtual_output_device(&host).or_else(|| host.default_output_device())
 }
 
 fn find_non_virtual_output_device(host: &cpal::Host) -> Option<cpal::Device> {
     host.output_devices().ok()?.find(|d| {
-        d.name()
-            .map(|n| {
-                let lower = n.to_lowercase();
-                !lower.contains("blackhole") &&
-                !lower.contains("voce") &&
-                !lower.contains("loopback")
+        d.description()
+            .map(|i| {
+                let lower = i.name().to_lowercase();
+                !lower.contains("blackhole")
+                    && !lower.contains("voce")
+                    && !lower.contains("loopback")
             })
             .unwrap_or(false)
     })

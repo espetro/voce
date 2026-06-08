@@ -1,11 +1,11 @@
-use crate::model::{EmbedderWrapper, cosine_similarity, l2_normalize};
+use crate::model::{cosine_similarity, l2_normalize, EmbedderWrapper};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use tracing::{debug, info, warn};
 
 const WINDOW: usize = 48000; // 3 s at 16000 Hz — longer windows give better speaker embeddings
-const HOP: usize = 24000;    // 1.5 s — 50% overlap
+const HOP: usize = 24000; // 1.5 s — 50% overlap
 
 #[derive(Serialize, Deserialize)]
 pub struct VoiceProfile {
@@ -28,7 +28,9 @@ impl VoiceProfile {
     }
 
     pub fn as_array(&self) -> Option<[f32; 256]> {
-        if self.embedding.len() != 256 { return None; }
+        if self.embedding.len() != 256 {
+            return None;
+        }
         let mut a = [0f32; 256];
         a.copy_from_slice(&self.embedding);
         Some(a)
@@ -61,13 +63,19 @@ pub async fn compute_profile(
             if !is_silent(window) {
                 match embedder.extract_embedding(window).await {
                     Ok(emb) => rec_embeddings.push(emb),
-                    Err(e) => warn!("Embedding extraction failed for rec {rec_idx} window {start}: {e}"),
+                    Err(e) => {
+                        warn!("Embedding extraction failed for rec {rec_idx} window {start}: {e}")
+                    }
                 }
             }
             start += HOP;
         }
 
-        debug!("Recording {}: {} valid windows extracted", rec_idx + 1, rec_embeddings.len());
+        debug!(
+            "Recording {}: {} valid windows extracted",
+            rec_idx + 1,
+            rec_embeddings.len()
+        );
         per_rec.push(rec_embeddings);
     }
 
@@ -96,21 +104,47 @@ pub async fn compute_profile(
     let mean = mean_embedding(&all_embeddings);
     let normalised = l2_normalize(mean);
 
-    Ok((VoiceProfile {
-        version: 1,
-        dim: 256,
-        embedding: normalised.to_vec(),
-    }, cross_sim))
+    Ok((
+        VoiceProfile {
+            version: 1,
+            dim: 256,
+            embedding: normalised.to_vec(),
+        },
+        cross_sim,
+    ))
 }
 
 /// Cosine similarity between the mean embeddings of exactly 2 recordings.
 /// Returns `None` if there aren't exactly 2 recordings each with ≥1 window.
 pub fn recording_cross_similarity(per_rec: &[Vec<[f32; 256]>]) -> Option<f32> {
-    if per_rec.len() != 2 { return None; }
-    if per_rec[0].is_empty() || per_rec[1].is_empty() { return None; }
+    if per_rec.len() != 2 {
+        return None;
+    }
+    if per_rec[0].is_empty() || per_rec[1].is_empty() {
+        return None;
+    }
     let a = l2_normalize(mean_embedding(&per_rec[0]));
     let b = l2_normalize(mean_embedding(&per_rec[1]));
     Some(cosine_similarity(&a, &b))
+}
+
+fn is_silent(samples: &[f32]) -> bool {
+    if samples.is_empty() {
+        return true;
+    }
+    let rms = (samples.iter().map(|s| s * s).sum::<f32>() / samples.len() as f32).sqrt();
+    rms == 0.0 || 20.0 * rms.log10() < -40.0
+}
+
+pub fn mean_embedding(embeddings: &[[f32; 256]]) -> [f32; 256] {
+    let n = embeddings.len() as f32;
+    let mut mean = [0f32; 256];
+    for emb in embeddings {
+        for (i, v) in emb.iter().enumerate() {
+            mean[i] += v / n;
+        }
+    }
+    mean
 }
 
 #[cfg(test)]
@@ -129,13 +163,21 @@ mod tests {
 
     #[test]
     fn as_array_correct_dim() {
-        let profile = VoiceProfile { version: 1, dim: 256, embedding: vec![0.0f32; 256] };
+        let profile = VoiceProfile {
+            version: 1,
+            dim: 256,
+            embedding: vec![0.0f32; 256],
+        };
         assert!(profile.as_array().is_some());
     }
 
     #[test]
     fn as_array_wrong_dim() {
-        let profile = VoiceProfile { version: 1, dim: 128, embedding: vec![0.0f32; 128] };
+        let profile = VoiceProfile {
+            version: 1,
+            dim: 128,
+            embedding: vec![0.0f32; 128],
+        };
         assert!(profile.as_array().is_none());
     }
 
@@ -144,7 +186,10 @@ mod tests {
         let emb = [0.5f32; 256];
         let per_rec = vec![vec![emb], vec![emb]];
         let sim = recording_cross_similarity(&per_rec).unwrap();
-        assert!((sim - 1.0).abs() < 1e-5, "identical embeddings → sim ≈ 1.0, got {sim}");
+        assert!(
+            (sim - 1.0).abs() < 1e-5,
+            "identical embeddings → sim ≈ 1.0, got {sim}"
+        );
     }
 
     #[test]
@@ -155,7 +200,10 @@ mod tests {
         b[1] = 1.0;
         let per_rec = vec![vec![a], vec![b]];
         let sim = recording_cross_similarity(&per_rec).unwrap();
-        assert!(sim.abs() < 1e-5, "orthogonal embeddings → sim ≈ 0.0, got {sim}");
+        assert!(
+            sim.abs() < 1e-5,
+            "orthogonal embeddings → sim ≈ 0.0, got {sim}"
+        );
     }
 
     #[test]
@@ -169,21 +217,4 @@ mod tests {
         let per_rec: Vec<Vec<[f32; 256]>> = vec![vec![[0.5f32; 256]], vec![]];
         assert!(recording_cross_similarity(&per_rec).is_none());
     }
-}
-
-fn is_silent(samples: &[f32]) -> bool {
-    if samples.is_empty() { return true; }
-    let rms = (samples.iter().map(|s| s * s).sum::<f32>() / samples.len() as f32).sqrt();
-    rms == 0.0 || 20.0 * rms.log10() < -40.0
-}
-
-pub fn mean_embedding(embeddings: &[[f32; 256]]) -> [f32; 256] {
-    let n = embeddings.len() as f32;
-    let mut mean = [0f32; 256];
-    for emb in embeddings {
-        for (i, v) in emb.iter().enumerate() {
-            mean[i] += v / n;
-        }
-    }
-    mean
 }

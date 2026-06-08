@@ -26,6 +26,7 @@ pub enum AppState {
     /// Enrolled and idle — filter running but mic not active.
     ActiveStandby,
     /// Filter actively processing speech.
+    #[allow(dead_code)]
     Filtering,
 }
 

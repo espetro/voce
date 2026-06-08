@@ -34,7 +34,13 @@ impl CaptureStream {
             .default_input_device()
             .context("no default input device found")?;
 
-        info!("Input device: {}", device.name().unwrap_or_default());
+        info!(
+            "Input device: {}",
+            device
+                .description()
+                .map(|d| d.name().to_string())
+                .unwrap_or_default()
+        );
 
         let config = pick_input_config(&device)?;
         let device_rate = config.sample_rate;
@@ -46,9 +52,7 @@ impl CaptureStream {
         // Decimation factor: how many device samples become one 16 kHz sample.
         let decimate_by = (device_rate / TARGET_HZ).max(1) as usize;
         if decimate_by > 1 {
-            info!(
-                "Resampling: decimating by {decimate_by} ({device_rate} Hz → {TARGET_HZ} Hz)"
-            );
+            info!("Resampling: decimating by {decimate_by} ({device_rate} Hz → {TARGET_HZ} Hz)");
         }
 
         let seq = Arc::new(AtomicU64::new(0));
@@ -88,15 +92,17 @@ impl CaptureStream {
                         leftover.drain(..512);
 
                         match output_tx.try_send(chunk.clone()) {
-                            Err(TrySendError::Full(_))         => warn!("output_tx full — dropping chunk"),
+                            Err(TrySendError::Full(_)) => warn!("output_tx full — dropping chunk"),
                             Err(TrySendError::Disconnected(_)) => {}
-                            Ok(())                             => {}
+                            Ok(()) => {}
                         }
                         if let Some(ref itx) = inference_tx {
                             match itx.try_send(chunk) {
-                                Err(TrySendError::Full(_))         => warn!("inference_tx full — dropping chunk"),
+                                Err(TrySendError::Full(_)) => {
+                                    warn!("inference_tx full — dropping chunk")
+                                }
                                 Err(TrySendError::Disconnected(_)) => {}
-                                Ok(())                             => {}
+                                Ok(()) => {}
                             }
                         }
                     }
@@ -126,14 +132,17 @@ fn pick_input_config(device: &cpal::Device) -> Result<StreamConfig> {
         }
     }
 
-    if let Some(range) = best {
+    if let Some(_range) = best {
         Ok(StreamConfig {
-            channels: 1.min(range.channels()).max(1),
+            channels: 1,
             sample_rate: TARGET_HZ,
             buffer_size: BufferSize::Default,
         })
     } else {
         info!("Device does not support {TARGET_HZ} Hz natively — will decimate from device rate.");
-        Ok(device.default_input_config().context("no default input config")?.into())
+        Ok(device
+            .default_input_config()
+            .context("no default input config")?
+            .into())
     }
 }

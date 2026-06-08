@@ -8,7 +8,7 @@
 //! plugin reads from, allowing the Rust audio pipeline to push filtered
 //! float32 samples directly to the virtual microphone.
 
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 use std::{
     ffi::CString,
     path::PathBuf,
@@ -51,13 +51,7 @@ impl RingBufferWriter {
         let name = CString::new(SHM_NAME).unwrap();
         let shm_size = std::mem::size_of::<RingLayout>();
 
-        let fd = unsafe {
-            libc::shm_open(
-                name.as_ptr(),
-                libc::O_CREAT | libc::O_RDWR,
-                0o600,
-            )
-        };
+        let fd = unsafe { libc::shm_open(name.as_ptr(), libc::O_CREAT | libc::O_RDWR, 0o600) };
         if fd < 0 {
             bail!("shm_open failed: {}", std::io::Error::last_os_error());
         }
@@ -108,6 +102,7 @@ impl RingBufferWriter {
     }
 
     /// Push a slice of samples.
+    #[allow(dead_code)]
     pub fn push_slice(&self, samples: &[f32]) {
         for &s in samples {
             self.push(s);
@@ -118,7 +113,10 @@ impl RingBufferWriter {
 impl Drop for RingBufferWriter {
     fn drop(&mut self) {
         unsafe {
-            libc::munmap(self.ring as *mut libc::c_void, std::mem::size_of::<RingLayout>());
+            libc::munmap(
+                self.ring as *mut libc::c_void,
+                std::mem::size_of::<RingLayout>(),
+            );
             libc::close(self.shm_fd);
         }
     }
@@ -151,9 +149,7 @@ fn bundled_driver_path() -> Option<PathBuf> {
     }
     // Development: target/release/VoceAudio.driver (built by `make -C audio-driver install`)
     if let Ok(exe) = std::env::current_exe() {
-        let candidate = exe
-            .parent()
-            .map(|p| p.join(DRIVER_BUNDLE));
+        let candidate = exe.parent().map(|p| p.join(DRIVER_BUNDLE));
         if let Some(p) = candidate {
             if p.exists() {
                 return Some(p);
@@ -164,6 +160,7 @@ fn bundled_driver_path() -> Option<PathBuf> {
 }
 
 /// Returns true if "Voce Microphone" appears in the CoreAudio device list.
+#[allow(dead_code)]
 pub fn voce_device_found() -> bool {
     // Use system_profiler as a quick check (no-dependency approach)
     Command::new("system_profiler")
@@ -180,7 +177,10 @@ pub fn ensure_installed() -> Result<()> {
     let install_path = hal_install_path()?;
 
     if install_path.exists() {
-        info!("VoceAudio.driver already installed at {}", install_path.display());
+        info!(
+            "VoceAudio.driver already installed at {}",
+            install_path.display()
+        );
         return Ok(());
     }
 
@@ -191,12 +191,10 @@ pub fn ensure_installed() -> Result<()> {
 
     // Create HAL directory if missing
     if let Some(parent) = install_path.parent() {
-        std::fs::create_dir_all(parent)
-            .context("cannot create ~/Library/Audio/Plug-Ins/HAL/")?;
+        std::fs::create_dir_all(parent).context("cannot create ~/Library/Audio/Plug-Ins/HAL/")?;
     }
 
-    copy_dir_recursive(&src, &install_path)
-        .context("failed to copy VoceAudio.driver")?;
+    copy_dir_recursive(&src, &install_path).context("failed to copy VoceAudio.driver")?;
 
     // Signal coreaudiod to reload — non-fatal if it fails
     let status = Command::new("launchctl")

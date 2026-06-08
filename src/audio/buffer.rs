@@ -34,9 +34,7 @@ impl EmbeddingWindowAccumulator {
         self.ring.extend(chunk);
         self.samples_since_last_emit += chunk.len();
 
-        if self.samples_since_last_emit >= self.hop_size
-            && self.ring.len() >= self.window_size
-        {
+        if self.samples_since_last_emit >= self.hop_size && self.ring.len() >= self.window_size {
             self.samples_since_last_emit = 0;
 
             // Collect the most recent window_size samples in order
@@ -54,6 +52,7 @@ impl EmbeddingWindowAccumulator {
         }
     }
 
+    #[allow(dead_code)]
     pub fn reset(&mut self) {
         self.ring.clear();
         self.samples_since_last_emit = 0;
@@ -76,7 +75,9 @@ mod tests {
         let mut emitted = 0usize;
         let mut total = 0usize;
         while total + CHUNK <= HOP - CHUNK {
-            if acc.push_chunk(&chunk).is_some() { emitted += 1; }
+            if acc.push_chunk(&chunk).is_some() {
+                emitted += 1;
+            }
             total += CHUNK;
         }
         assert_eq!(emitted, 0, "no window should emit before first hop fills");

@@ -49,8 +49,8 @@ impl WeSpeakerEmbedder {
 }
 
 fn compute_fbank80(samples: &[f32]) -> Result<Array2<f32>> {
-    use kaldi_native_fbank::{FbankComputer, FbankOptions, OnlineFeature};
     use kaldi_native_fbank::online::FeatureComputer;
+    use kaldi_native_fbank::{FbankComputer, FbankOptions, OnlineFeature};
 
     // Match the WeSpeaker training pipeline: 80 mel bins, hamming window, no dither, no energy.
     let mut opts = FbankOptions::default();

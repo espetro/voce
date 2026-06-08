@@ -41,6 +41,7 @@ impl SlidingVoteGate {
         self.current_pass
     }
 
+    #[allow(dead_code)]
     pub fn reset(&mut self) {
         self.history.clear();
         self.current_pass = true;
@@ -55,7 +56,10 @@ mod tests {
     #[test]
     fn fail_open_initial_state() {
         let gate = SlidingVoteGate::new(0.8, 3);
-        assert!(gate.current_pass, "gate must start in pass (fail-open) state");
+        assert!(
+            gate.current_pass,
+            "gate must start in pass (fail-open) state"
+        );
     }
 
     #[test]
@@ -64,7 +68,10 @@ mod tests {
         gate.update(0.5); // fail
         assert!(gate.current_pass, "one fail in window of 3 should not mute");
         gate.update(0.5); // fail
-        assert!(gate.current_pass, "two fails in window of 3 should not mute");
+        assert!(
+            gate.current_pass,
+            "two fails in window of 3 should not mute"
+        );
         gate.update(0.5); // fail — now all 3 frames below threshold
         assert!(!gate.current_pass, "three consecutive fails should mute");
     }

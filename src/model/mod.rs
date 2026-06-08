@@ -30,8 +30,7 @@ impl ModelSet {
         info!("VAD model ready");
 
         info!("Loading speaker embedding model…");
-        let embedder =
-            EmbedderWrapper::new(&models_dir.join("voxblink2_samresnet34_ft.onnx"))?;
+        let embedder = EmbedderWrapper::new(&models_dir.join("voxblink2_samresnet34_ft.onnx"))?;
         info!("Speaker embedding model ready");
 
         Ok(ModelSet { vad, embedder })

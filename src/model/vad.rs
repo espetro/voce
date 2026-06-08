@@ -9,8 +9,7 @@ pub struct VadWrapper {
 
 impl VadWrapper {
     pub fn new(model_path: &Path) -> Result<Self> {
-        let inner = VoiceActivityDetector::new(model_path)
-            .context("failed to load VAD model")?;
+        let inner = VoiceActivityDetector::new(model_path).context("failed to load VAD model")?;
         Ok(Self { inner })
     }
 
@@ -34,18 +33,28 @@ impl VadWrapper {
                 let mut padded = vec![0.0f32; CHUNK];
                 padded[..chunk.len()].copy_from_slice(chunk);
                 match self.inner.detect::<16000>(&padded).await {
-                    Ok(p) => { sum += p; count += 1; }
+                    Ok(p) => {
+                        sum += p;
+                        count += 1;
+                    }
                     Err(e) => tracing::warn!("VAD detect error: {e}"),
                 }
             } else {
                 match self.inner.detect::<16000>(chunk).await {
-                    Ok(p) => { sum += p; count += 1; }
+                    Ok(p) => {
+                        sum += p;
+                        count += 1;
+                    }
                     Err(e) => tracing::warn!("VAD detect error: {e}"),
                 }
             }
         }
 
-        if count == 0 { Ok(0.0) } else { Ok(sum / count as f32) }
+        if count == 0 {
+            Ok(0.0)
+        } else {
+            Ok(sum / count as f32)
+        }
     }
 
     /// Fast silence check using RMS energy.

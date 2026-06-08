@@ -10,7 +10,8 @@ pub struct ModelUrls {
 pub const URLS: ModelUrls = ModelUrls {
     vad: "https://github.com/mzdk100/voxudio/releases/download/model/voice_activity_detector.onnx",
     // WeSpeaker VoxBlink2 + VoxCeleb2 FT SimAMResNet34 (256-dim embeddings)
-    embedder: "https://wenet.org.cn/downloads?models=wespeaker&version=voxblink2_samresnet34_ft.onnx",
+    embedder:
+        "https://wenet.org.cn/downloads?models=wespeaker&version=voxblink2_samresnet34_ft.onnx",
 };
 
 /// Download ONNX model files to `models_dir` if they are not already present.
@@ -41,15 +42,15 @@ pub async fn ensure_models(
     Ok(())
 }
 
-async fn download_if_missing(
-    dest: &PathBuf,
-    url: &str,
-    on_progress: impl Fn(f32),
-) -> Result<()> {
+async fn download_if_missing(dest: &PathBuf, url: &str, on_progress: impl Fn(f32)) -> Result<()> {
     if dest.exists() {
         let size = std::fs::metadata(dest)?.len();
         if size > 0 {
-            info!("Model already present: {} ({} KB)", dest.display(), size / 1024);
+            info!(
+                "Model already present: {} ({} KB)",
+                dest.display(),
+                size / 1024
+            );
             on_progress(1.0);
             return Ok(());
         }

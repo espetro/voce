@@ -1,7 +1,7 @@
 // Enrollment recording session — Phase 4
 
 pub const TARGET_DURATION_SAMPLES: u32 = 16000 * 20; // 20 s at 16000 Hz
-pub const MIN_SPEECH_SAMPLES: u32 = 16000 * 10;      // 10 s minimum speech
+pub const MIN_SPEECH_SAMPLES: u32 = 16000 * 10; // 10 s minimum speech
 
 #[derive(Debug)]
 pub enum EnrollmentStatus {
@@ -39,10 +39,15 @@ impl EnrollmentSession {
             if self.speech_samples >= MIN_SPEECH_SAMPLES {
                 EnrollmentStatus::Complete { speech_s }
             } else {
-                EnrollmentStatus::Invalid { reason: "insufficient_speech" }
+                EnrollmentStatus::Invalid {
+                    reason: "insufficient_speech",
+                }
             }
         } else {
-            EnrollmentStatus::InProgress { elapsed_s, speech_s }
+            EnrollmentStatus::InProgress {
+                elapsed_s,
+                speech_s,
+            }
         }
     }
 
@@ -57,9 +62,16 @@ mod tests {
 
     const CHUNK: usize = 512;
 
-    fn push_n_chunks(session: &mut EnrollmentSession, n: usize, is_speech: bool) -> EnrollmentStatus {
+    fn push_n_chunks(
+        session: &mut EnrollmentSession,
+        n: usize,
+        is_speech: bool,
+    ) -> EnrollmentStatus {
         let chunk = vec![0.0f32; CHUNK];
-        let mut last = EnrollmentStatus::InProgress { elapsed_s: 0, speech_s: 0 };
+        let mut last = EnrollmentStatus::InProgress {
+            elapsed_s: 0,
+            speech_s: 0,
+        };
         for _ in 0..n {
             last = session.push_chunk(&chunk, is_speech);
         }
@@ -69,7 +81,7 @@ mod tests {
     #[test]
     fn complete_with_sufficient_speech() {
         let mut s = EnrollmentSession::new();
-        let total_chunks = (TARGET_DURATION_SAMPLES as usize + CHUNK - 1) / CHUNK;
+        let total_chunks = (TARGET_DURATION_SAMPLES as usize).div_ceil(CHUNK);
         let status = push_n_chunks(&mut s, total_chunks, true);
         assert!(matches!(status, EnrollmentStatus::Complete { .. }));
     }
@@ -77,9 +89,14 @@ mod tests {
     #[test]
     fn invalid_with_insufficient_speech() {
         let mut s = EnrollmentSession::new();
-        let total_chunks = (TARGET_DURATION_SAMPLES as usize + CHUNK - 1) / CHUNK;
+        let total_chunks = (TARGET_DURATION_SAMPLES as usize).div_ceil(CHUNK);
         let status = push_n_chunks(&mut s, total_chunks, false);
-        assert!(matches!(status, EnrollmentStatus::Invalid { reason: "insufficient_speech" }));
+        assert!(matches!(
+            status,
+            EnrollmentStatus::Invalid {
+                reason: "insufficient_speech"
+            }
+        ));
     }
 
     #[test]

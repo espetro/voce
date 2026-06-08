@@ -13,7 +13,9 @@ pub struct Config {
     pub noise_suppression: bool,
 }
 
-fn default_true() -> bool { true }
+fn default_true() -> bool {
+    true
+}
 
 impl Default for Config {
     fn default() -> Self {
@@ -35,6 +37,7 @@ impl Config {
         }
     }
 
+    #[allow(dead_code)]
     pub fn save(&self, path: &Path) -> Result<()> {
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)?;
