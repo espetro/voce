@@ -28,10 +28,10 @@ type TokioHandle = tokio::runtime::Handle;
 
 use winit::{
     application::ApplicationHandler,
-    dpi::{LogicalSize, PhysicalPosition},
+    dpi::LogicalSize,
     event::{StartCause, WindowEvent},
     event_loop::{ActiveEventLoop, ControlFlow, EventLoop, EventLoopProxy},
-    window::{Window, WindowAttributes, WindowId, WindowLevel},
+    window::{Window, WindowAttributes, WindowId},
 };
 
 // Panel: SolidJS app bundled to a single self-contained HTML by vite-plugin-singlefile.
@@ -70,7 +70,6 @@ struct VoceApp {
     tokio: TokioHandle,
     tray_icon: Option<tray_icon::TrayIcon>,
     status_item: Option<muda::MenuItem>,
-    filter_toggle_item: Option<muda::MenuItem>,
     panel_window: Option<Window>,
     webview: Option<wry::WebView>,
     panel_open: bool,
@@ -108,7 +107,6 @@ impl VoceApp {
             tokio,
             tray_icon: None,
             status_item: None,
-            filter_toggle_item: None,
             panel_window: None,
             webview: None,
             panel_open: false,
@@ -167,10 +165,9 @@ impl VoceApp {
 
         let attrs = WindowAttributes::default()
             .with_title("Voce")
-            .with_decorations(false)
+            .with_decorations(true)
             .with_resizable(false)
             .with_visible(false)
-            .with_window_level(WindowLevel::AlwaysOnTop)
             .with_inner_size(LogicalSize::new(320u32, 480u32));
 
         let window = match event_loop.create_window(attrs) {
@@ -211,28 +208,16 @@ impl VoceApp {
         }
     }
 
-    /// Position and show the panel anchored below the tray icon rect.
-    fn show_panel(&mut self, tray_rect: &tray_icon::Rect) {
+    fn show_panel(&mut self) {
         let Some(window) = &self.panel_window else { return };
-
-        let panel_w: f64 = 320.0;
-        // Centre horizontally on the tray icon; open below the menubar
-        let x = tray_rect.position.x + tray_rect.size.width as f64 / 2.0 - panel_w / 2.0;
-        let y = tray_rect.position.y + tray_rect.size.height as f64 + 4.0;
-
-        window.set_outer_position(PhysicalPosition::new(x, y));
         window.set_visible(true);
+        window.focus_window();
         self.panel_open = true;
 
-        // Push the current state to the panel so it shows the right screen
         let state_str = self.shared.lock().unwrap().app_state.as_js_str();
         self.send_to_panel(&PanelEvent::StateChanged { state: state_str });
-
-        // Push BlackHole status
         let found = self.shared.lock().unwrap().blackhole_found;
         self.send_to_panel(&PanelEvent::BlackholeStatus { found });
-
-        // Push filter and noise suppression state
         let paused = self.filter_paused.load(Ordering::Relaxed);
         self.send_to_panel(&PanelEvent::FilterPaused { paused });
         let ns_enabled = self.noise_suppression.load(Ordering::Relaxed);
@@ -258,9 +243,8 @@ impl ApplicationHandler<AppEvent> for VoceApp {
 
         // Tray icon
         let icon = load_tray_icon_loading();
-        let (menu, status_item, filter_toggle_item) = build_tray_menu();
+        let (menu, status_item) = build_tray_menu();
         self.status_item = Some(status_item);
-        self.filter_toggle_item = Some(filter_toggle_item);
         match tray_icon::TrayIconBuilder::new()
             .with_menu(Box::new(menu))
             .with_menu_on_left_click(false)
@@ -316,7 +300,6 @@ impl ApplicationHandler<AppEvent> for VoceApp {
         event: WindowEvent,
     ) {
         match event {
-            WindowEvent::Focused(false) => self.hide_panel(),
             WindowEvent::CloseRequested => self.hide_panel(),
             _ => {}
         }
@@ -377,26 +360,9 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                 }
             }
 
-            // ---- Open panel (auto on first launch) ----
+            // ---- Open panel ----
             AppEvent::OpenPanel => {
-                // Use a dummy rect centred on the screen for auto-open
-                // (real position will be set on tray click from now on)
-                if !self.panel_open {
-                    if let Some(w) = &self.panel_window {
-                        // Position near top-right as a reasonable default
-                        w.set_outer_position(PhysicalPosition::new(1400.0f64, 30.0));
-                        w.set_visible(true);
-                        self.panel_open = true;
-                        let state_str = self.shared.lock().unwrap().app_state.as_js_str();
-                        self.send_to_panel(&PanelEvent::StateChanged { state: state_str });
-                        let found = self.shared.lock().unwrap().blackhole_found;
-                        self.send_to_panel(&PanelEvent::BlackholeStatus { found });
-                        let paused = self.filter_paused.load(Ordering::Relaxed);
-                        self.send_to_panel(&PanelEvent::FilterPaused { paused });
-                        let ns_enabled = self.noise_suppression.load(Ordering::Relaxed);
-                        self.send_to_panel(&PanelEvent::NoiseSuppression { enabled: ns_enabled });
-                    }
-                }
+                self.show_panel();
             }
 
             // ---- State changes ----
@@ -404,7 +370,6 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                 info!("State → {:?}", new_state);
                 let js_str = new_state.as_js_str();
                 let is_filtering = matches!(new_state, AppState::Filtering);
-                let filter_active = is_filtering || matches!(new_state, AppState::ActiveStandby);
 
                 // Update native tray menu status label
                 if let Some(item) = &self.status_item {
@@ -429,10 +394,6 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                     s.app_state = new_state;
                 }
                 self.send_to_panel(&PanelEvent::StateChanged { state: js_str });
-                // Enable filter toggle tray item only while filter is running
-                if let Some(item) = &self.filter_toggle_item {
-                    let _ = item.set_enabled(filter_active);
-                }
 
                 if let Some(tray) = &self.tray_icon {
                     let paused = self.filter_paused.load(Ordering::Relaxed);
@@ -483,14 +444,16 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                     TrayIconEvent::Click {
                         button: tray_icon::MouseButton::Left,
                         button_state: tray_icon::MouseButtonState::Up,
-                        rect,
                         ..
                     } => {
-                        if self.panel_open {
-                            self.hide_panel();
+                        let state = self.shared.lock().unwrap().app_state.clone();
+                        let filter_active = matches!(state, AppState::ActiveStandby | AppState::Filtering);
+                        if filter_active {
+                            let paused = !self.filter_paused.load(Ordering::Relaxed);
+                            self.filter_paused.store(paused, Ordering::Relaxed);
+                            let _ = self.proxy.send_event(AppEvent::FilterPaused { paused });
                         } else {
-                            self.ensure_panel(event_loop);
-                            self.show_panel(&rect);
+                            let _ = self.proxy.send_event(AppEvent::OpenPanel);
                         }
                     }
                     _ => {}
@@ -504,6 +467,9 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                         info!("Quit");
                         event_loop.exit();
                     }
+                    "settings" => {
+                        let _ = self.proxy.send_event(AppEvent::OpenPanel);
+                    }
                     "reenroll" => {
                         info!("Re-enroll via menu");
                         let path = config::enrolled_embedding_path();
@@ -511,11 +477,6 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                         let _ = self.inference_cmd_tx.send(InferenceCmd::StopFilter);
                         let _ = self.proxy.send_event(AppEvent::StateChanged(AppState::OnboardingReady));
                         let _ = self.proxy.send_event(AppEvent::OpenPanel);
-                    }
-                    "toggle_filter" => {
-                        let paused = !self.filter_paused.load(Ordering::Relaxed);
-                        self.filter_paused.store(paused, Ordering::Relaxed);
-                        let _ = self.proxy.send_event(AppEvent::FilterPaused { paused });
                     }
                     _ => {}
                 }
@@ -619,10 +580,6 @@ impl ApplicationHandler<AppEvent> for VoceApp {
 
             AppEvent::FilterPaused { paused } => {
                 self.send_to_panel(&PanelEvent::FilterPaused { paused });
-                if let Some(item) = &self.filter_toggle_item {
-                    let label = if paused { "Resume filter" } else { "Pause filter" };
-                    let _ = item.set_text(label);
-                }
                 if let Some(tray) = &self.tray_icon {
                     if paused {
                         let _ = tray.set_icon(Some(load_tray_icon_idle()));
@@ -631,6 +588,7 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                     }
                 }
             }
+
         }
     }
 
@@ -704,18 +662,17 @@ async fn play_samples(
 // Menu
 // ---------------------------------------------------------------------------
 
-fn build_tray_menu() -> (muda::Menu, muda::MenuItem, muda::MenuItem) {
+fn build_tray_menu() -> (muda::Menu, muda::MenuItem) {
     use muda::{Menu, MenuItem, PredefinedMenuItem};
     let menu   = Menu::new();
     let status = MenuItem::with_id("status", "Voce — loading…", false, None);
-    let filter_toggle = MenuItem::with_id("toggle_filter", "Pause filter", false, None);
     let _ = menu.append(&status);
     let _ = menu.append(&PredefinedMenuItem::separator());
-    let _ = menu.append(&filter_toggle);
+    let _ = menu.append(&MenuItem::with_id("settings", "Settings…", true, None));
     let _ = menu.append(&MenuItem::with_id("reenroll", "Re-enroll voice…", true, None));
     let _ = menu.append(&PredefinedMenuItem::separator());
     let _ = menu.append(&MenuItem::with_id("quit", "Quit Voce", true, None));
-    (menu, status, filter_toggle)
+    (menu, status)
 }
 
 // ---------------------------------------------------------------------------
