@@ -27,8 +27,20 @@ install/.vite/
 assets/panel/node_modules/
 assets/panel/.vite/
 
-# Eval — raw multi-GB source recordings (derive clips into tests/ instead)
-eval/fixtures/alimeeting/audio/
+# Eval — generated fixtures and source data (download with just eval::setup, never commit)
+eval/.venv/
+eval/.env
+eval/uv.lock
+eval/fixtures/
+eval/**/*.wav
+eval/**/*.tar.gz
+eval/**/*.jsonl
+eval/scripts/__pycache__/
+eval/fixtures/librispeech_*/
+eval/fixtures/other/
+eval/fixtures/alimeeting/
+eval/fixtures/msc/
+eval/fixtures/audio_tests/
 
 # Python (eval/)
 eval/.venv/
