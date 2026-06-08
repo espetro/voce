@@ -54,6 +54,17 @@ pub enum AppEvent {
     },
     // Device watcher: system default input changed while running
     InputDeviceChanged,
+    // Driver setup: status update from background install task
+    DriverStatus {
+        installed: bool,
+        device_found: bool,
+    },
+    // Reset flow: user requested full reset
+    FullReset,
+    // Reset flow: full reset task complete
+    ResetComplete {
+        success: bool,
+    },
 }
 
 /// Commands sent from the main thread → inference task.
