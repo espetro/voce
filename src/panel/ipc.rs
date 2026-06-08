@@ -16,6 +16,12 @@ pub enum PanelCmd {
     // Phase 8: filter and noise suppression toggles
     ToggleFilter,
     SetNoiseSuppression { enabled: bool },
+    // Driver setup: background driver installation
+    InstallDriver,
+    // Reset flow: full reset (wipe config + driver)
+    FullReset,
+    // Driver setup: open system sound settings
+    OpenSystemSound,
 }
 
 /// Events sent from Rust → panel JS via `webview.evaluate_script(...)`.
@@ -60,6 +66,15 @@ pub enum PanelEvent {
     },
     NoiseSuppression {
         enabled: bool,
+    },
+    // Driver setup: status update from background install task
+    DriverStatus {
+        installed: bool,
+        device_found: bool,
+    },
+    // Reset flow: full reset task complete
+    ResetComplete {
+        success: bool,
     },
 }
 
