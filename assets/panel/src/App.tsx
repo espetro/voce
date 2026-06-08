@@ -3,6 +3,7 @@ import { Switch, Match } from 'solid-js';
 import { createAppState } from './hooks/useAppState';
 import { useIpc } from './hooks/useIpc';
 import Loading from './components/Loading';
+import DriverSetup from './components/DriverSetup';
 import Onboarding from './components/Onboarding';
 import Test from './components/Test';
 import Active from './components/Active';
@@ -26,6 +27,9 @@ const App: Component = () => {
     <Switch fallback={<Loading state={state} ipc={ipc} />}>
       <Match when={state.screen() === 'loading'}>
         <Loading state={state} ipc={ipc} />
+      </Match>
+      <Match when={state.screen() === 'driver-setup'}>
+        <DriverSetup state={state} ipc={ipc} />
       </Match>
       <Match when={ONBOARDING_SCREENS.includes(state.screen())}>
         <Onboarding state={state} ipc={ipc} />
