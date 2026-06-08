@@ -1,7 +1,7 @@
 /*
  * VoceAudio.c — CoreAudio HAL plugin for "Voce Microphone"
  *
- * Creates a virtual input-only device (mono, 22050 Hz) that reads from a
+ * Creates a virtual input-only device (mono, 16000 Hz) that reads from a
  * POSIX shared-memory ring buffer written by the Voce.app process.
  *
  * Build & install (run from repo root):
@@ -25,7 +25,7 @@
 // ─── Shared-memory ring buffer ────────────────────────────────────────────────
 
 #define VOCE_SHM_NAME    "/voce_audio_ring"
-#define RING_CAP         (22050u * 4u)          // 4 seconds of f32 @ 22050 Hz
+#define RING_CAP         (16000u * 4u)          // 4 seconds of f32 @ 16000 Hz
 
 typedef struct {
     _Atomic(uint32_t) write_pos;
@@ -35,7 +35,7 @@ typedef struct {
 
 // ─── Device constants ─────────────────────────────────────────────────────────
 
-#define kSampleRate      22050.0
+#define kSampleRate      16000.0
 #define kNumChannels     1u
 #define kBufferFrames    512u
 
