@@ -59,7 +59,10 @@ build-icons:
 # Copies the debug binary into the bundle, ad-hoc signs, then opens.
 # macOS will prompt for mic access on first launch.
 
-dev-app: build-panel build-rust
+dev-app: build-panel build-rust driver::build
+    mkdir -p voce.app/Contents/PlugIns
+    rm -rf voce.app/Contents/PlugIns/VoceAudio.driver
+    cp -R audio-driver/VoceAudio.driver voce.app/Contents/PlugIns/VoceAudio.driver
     rm -f voce.app/Contents/MacOS/voce
     cp target/debug/voce voce.app/Contents/MacOS/voce
     cp assets/icons/voce.icns voce.app/Contents/Resources/voce.icns
@@ -70,8 +73,11 @@ dev-app: build-panel build-rust
 
 # ── Local install to ~/Applications (release binary, ad-hoc signed) ──────────
 
-install-local: build-panel build-rust-release
+install-local: build-panel build-rust-release driver::build
     mkdir -p voce.app/Contents/MacOS
+    mkdir -p voce.app/Contents/PlugIns
+    rm -rf voce.app/Contents/PlugIns/VoceAudio.driver
+    cp -R audio-driver/VoceAudio.driver voce.app/Contents/PlugIns/VoceAudio.driver
     cp target/release/voce voce.app/Contents/MacOS/voce
     cp assets/icons/voce.icns voce.app/Contents/Resources/voce.icns
     codesign --force --deep --sign - \
