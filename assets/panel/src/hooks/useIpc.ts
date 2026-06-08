@@ -18,6 +18,9 @@ export const useIpc = () => ({
   openBlackholeLink: () => send({ cmd: 'open_blackhole_link' }),
   toggleFilter: () => send({ cmd: 'toggle_filter' }),
   setNoiseSuppression: (enabled: boolean) => send({ cmd: 'set_noise_suppression', enabled }),
+  installDriver: () => send({ cmd: 'install_driver' }),
+  fullReset: () => send({ cmd: 'full_reset' }),
+  openSystemSound: () => send({ cmd: 'open_system_sound' }),
 } as const);
 
 export type IpcActions = ReturnType<typeof useIpc>;
