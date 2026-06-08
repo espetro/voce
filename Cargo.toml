@@ -29,8 +29,8 @@ muda = "0.17"
 # Panel WebView — 0.55 uses objc2 0.6
 wry = "0.55"
 
-# Event loop (winit 0.30 is the common integration point for tray-icon + wry)
-winit = "0.30"
+# Event loop — tao is the winit fork that patches the macOS focus-resign ObjC panic
+tao = "0.35"
 
 # Async runtime
 tokio = { version = "1", features = ["full"] }

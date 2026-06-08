@@ -16,7 +16,7 @@ use crate::{
     },
     events::{AppEvent, InferenceCmd},
     filter::gate::SlidingVoteGate,
-    model::{ModelSet, VadWrapper, cosine_similarity},
+    model::{cosine_similarity, ModelSet, VadWrapper},
 };
 use anyhow::Result;
 use crossbeam_channel::Receiver;
@@ -24,8 +24,8 @@ use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
 };
+use tao::event_loop::EventLoopProxy;
 use tracing::{debug, error, info, warn};
-use winit::event_loop::EventLoopProxy;
 
 /// Result of processing one 16000-sample window through the full pipeline.
 pub struct FrameResult {
@@ -57,9 +57,17 @@ pub async fn process_window(
     }
 
     // Neural VAD: probability that this window contains speech
-    let speech_prob = models.vad.speech_probability_16000(window).await.unwrap_or(0.0);
+    let speech_prob = models
+        .vad
+        .speech_probability_16000(window)
+        .await
+        .unwrap_or(0.0);
     if speech_prob < 0.5 {
-        return Ok(Some(FrameResult { similarity: 0.0, passed: true, is_nonspeech: true }));
+        return Ok(Some(FrameResult {
+            similarity: 0.0,
+            passed: true,
+            is_nonspeech: true,
+        }));
     }
 
     // Speaker embedding + cosine similarity
@@ -67,7 +75,11 @@ pub async fn process_window(
     let similarity = cosine_similarity(&emb, enrolled);
     let passed = gate.update(similarity);
 
-    Ok(Some(FrameResult { similarity, passed, is_nonspeech: false }))
+    Ok(Some(FrameResult {
+        similarity,
+        passed,
+        is_nonspeech: false,
+    }))
 }
 
 // Accumulation buffer for a 10-second test recording.
@@ -79,6 +91,7 @@ struct TestCapture {
 }
 
 /// State the inference task can be in.
+#[allow(clippy::large_enum_variant)]
 enum Mode {
     /// Waiting for a command.
     Idle,
@@ -126,10 +139,11 @@ pub async fn run(
                         index,
                         session: EnrollmentSession::new(),
                     };
-                    let _ = proxy.send_event(AppEvent::StateChanged(
-                        if index == 1 { AppState::Recording { index: 1 } }
-                        else          { AppState::Recording { index: 2 } }
-                    ));
+                    let _ = proxy.send_event(AppEvent::StateChanged(if index == 1 {
+                        AppState::Recording { index: 1 }
+                    } else {
+                        AppState::Recording { index: 2 }
+                    }));
                 }
 
                 InferenceCmd::StartFilter { enrolled } => {
@@ -200,10 +214,15 @@ pub async fn run(
             let denoised = denoiser.process_chunk(&chunk.samples);
             if denoised.is_empty() {
                 chunks_processed += 1;
-                if chunks_processed >= 20 { break; }
+                if chunks_processed >= 20 {
+                    break;
+                }
                 continue;
             }
-            let chunk = AudioChunk { samples: denoised.into_boxed_slice(), seq: chunk.seq };
+            let chunk = AudioChunk {
+                samples: denoised.into_boxed_slice(),
+                seq: chunk.seq,
+            };
             process_chunk(
                 &chunk,
                 &mut mode,
@@ -217,13 +236,16 @@ pub async fn run(
             .await;
 
             chunks_processed += 1;
-            if chunks_processed >= 20 { break; }
+            if chunks_processed >= 20 {
+                break;
+            }
         }
 
         tokio::time::sleep(tokio::time::Duration::from_millis(5)).await;
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn process_chunk(
     chunk: &AudioChunk,
     mode: &mut Mode,
@@ -244,8 +266,11 @@ async fn process_chunk(
             let idx = *index;
 
             match session.push_chunk(&chunk.samples, is_speech) {
-                EnrollmentStatus::InProgress { elapsed_s, speech_s } => {
-                    if chunk.seq % 11 == 0 {
+                EnrollmentStatus::InProgress {
+                    elapsed_s,
+                    speech_s,
+                } => {
+                    if chunk.seq.is_multiple_of(11) {
                         let _ = proxy.send_event(AppEvent::RecordingProgress {
                             index: idx,
                             elapsed_s,
@@ -259,12 +284,16 @@ async fn process_chunk(
                     let buffer = std::mem::replace(session, EnrollmentSession::new()).take_buffer();
                     enrollment_buffers.push(buffer);
 
-                    let _ = proxy.send_event(AppEvent::RecordingComplete { index: idx, speech_s });
+                    let _ = proxy.send_event(AppEvent::RecordingComplete {
+                        index: idx,
+                        speech_s,
+                    });
 
                     if enrollment_buffers.len() >= 2 {
                         *mode = Mode::ComputingProfile;
                         let _ = proxy.send_event(AppEvent::StateChanged(AppState::Adapting));
-                        compute_and_save_profile(models, enrollment_buffers, gate_state, proxy).await;
+                        compute_and_save_profile(models, enrollment_buffers, gate_state, proxy)
+                            .await;
                     } else {
                         *mode = Mode::Idle;
                     }
@@ -279,7 +308,12 @@ async fn process_chunk(
         }
 
         // ---- Real-time filtering (+ optional test capture) ----
-        Mode::Filtering { enrolled, gate, accumulator, test_capture } => {
+        Mode::Filtering {
+            enrolled,
+            gate,
+            accumulator,
+            test_capture,
+        } => {
             // Compute whether this chunk passes the gate.
             // We avoid early `return` here so test_capture always gets updated.
             let pass: bool;
@@ -335,11 +369,12 @@ async fn process_chunk(
                     tc.buffer.extend_from_slice(&chunk.samples);
                     tc.passed_chunks += 1;
                 } else {
-                    tc.buffer.extend(std::iter::repeat(0.0f32).take(chunk.samples.len()));
+                    tc.buffer
+                        .extend(std::iter::repeat_n(0.0f32, chunk.samples.len()));
                 }
                 tc.elapsed_samples += chunk.samples.len();
 
-                if chunk.seq % 22 == 0 {
+                if chunk.seq.is_multiple_of(22) {
                     let elapsed_s = (tc.elapsed_samples / 16000) as u32;
                     let _ = proxy.send_event(AppEvent::TestProgress { elapsed_s });
                 }

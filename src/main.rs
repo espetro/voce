@@ -13,25 +13,24 @@ mod panel;
 use app_state::AppState;
 use audio::{buffer::AudioChunk, capture::CaptureStream, denoise::Denoiser, output::OutputStream};
 use events::{AppEvent, InferenceCmd};
-use panel::ipc::{PanelCmd, PanelEvent, parse_cmd};
+use panel::ipc::{parse_cmd, PanelCmd, PanelEvent};
 
+use clap::Parser;
 use crossbeam_channel::{bounded, Receiver, Sender};
+use std::path::PathBuf;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc, Mutex,
 };
 use tracing::{error, info, warn};
-use clap::Parser;
-use std::path::PathBuf;
 
 type TokioHandle = tokio::runtime::Handle;
 
-use winit::{
-    application::ApplicationHandler,
+use tao::{
     dpi::LogicalSize,
-    event::{StartCause, WindowEvent},
-    event_loop::{ActiveEventLoop, ControlFlow, EventLoop, EventLoopProxy},
-    window::{Window, WindowAttributes, WindowId},
+    event::{Event, StartCause, WindowEvent},
+    event_loop::{ControlFlow, EventLoopBuilder, EventLoopProxy, EventLoopWindowTarget},
+    window::{Window, WindowBuilder},
 };
 
 // Panel: SolidJS app bundled to a single self-contained HTML by vite-plugin-singlefile.
@@ -97,9 +96,9 @@ struct VoceApp {
 
 impl VoceApp {
     fn new(proxy: EventLoopProxy<AppEvent>, tokio: TokioHandle) -> Self {
-        let (audio_tx, audio_rx)             = bounded::<AudioChunk>(64);
-        let (inf_audio_tx, inf_audio_rx)     = bounded::<AudioChunk>(64);
-        let (inf_cmd_tx, inf_cmd_rx)         = bounded::<InferenceCmd>(32);
+        let (audio_tx, audio_rx) = bounded::<AudioChunk>(64);
+        let (inf_audio_tx, inf_audio_rx) = bounded::<AudioChunk>(64);
+        let (inf_cmd_tx, inf_cmd_rx) = bounded::<InferenceCmd>(32);
         let cfg = config::Config::load(&config::config_path()).unwrap_or_default();
         Self {
             shared: Arc::new(Mutex::new(SharedState::new())),
@@ -130,11 +129,17 @@ impl VoceApp {
     fn start_audio(&mut self) {
         let rx = match self.audio_rx.take() {
             Some(r) => r,
-            None => { warn!("Audio already started"); return; }
+            None => {
+                warn!("Audio already started");
+                return;
+            }
         };
 
         match CaptureStream::start(self.audio_tx.clone(), Some(self.inference_audio_tx.clone())) {
-            Ok(s) => { self._capture = Some(s); info!("Microphone capture running"); }
+            Ok(s) => {
+                self._capture = Some(s);
+                info!("Microphone capture running");
+            }
             Err(e) => {
                 error!("Failed to start microphone capture: {e}");
                 let (tx2, rx2) = bounded::<AudioChunk>(64);
@@ -148,31 +153,38 @@ impl VoceApp {
             Ok(s) => {
                 self._output = Some(s);
                 info!("BlackHole output running");
-                let _ = self.proxy.send_event(AppEvent::BlackHoleStatus { found: true });
+                let _ = self
+                    .proxy
+                    .send_event(AppEvent::BlackHoleStatus { found: true });
             }
             Err(e) => {
                 warn!("BlackHole output not started: {e}");
-                let _ = self.proxy.send_event(AppEvent::BlackHoleStatus { found: false });
+                let _ = self
+                    .proxy
+                    .send_event(AppEvent::BlackHoleStatus { found: false });
             }
         }
     }
 
     /// Create the panel Window + WebView if they don't exist yet.
-    fn ensure_panel(&mut self, event_loop: &ActiveEventLoop) {
+    fn ensure_panel(&mut self, target: &EventLoopWindowTarget<AppEvent>) {
         if self.panel_window.is_some() {
             return;
         }
 
-        let attrs = WindowAttributes::default()
+        let window = match WindowBuilder::new()
             .with_title("Voce")
             .with_decorations(true)
             .with_resizable(false)
             .with_visible(false)
-            .with_inner_size(LogicalSize::new(320u32, 480u32));
-
-        let window = match event_loop.create_window(attrs) {
+            .with_inner_size(LogicalSize::new(320u32, 480u32))
+            .build(target)
+        {
             Ok(w) => w,
-            Err(e) => { error!("Failed to create panel window: {e}"); return; }
+            Err(e) => {
+                error!("Failed to create panel window: {e}");
+                return;
+            }
         };
 
         let proxy_ipc = self.proxy.clone();
@@ -181,7 +193,9 @@ impl VoceApp {
             .with_ipc_handler(move |req: wry::http::Request<String>| {
                 let body = req.body();
                 match parse_cmd(body) {
-                    Ok(cmd) => { let _ = proxy_ipc.send_event(AppEvent::PanelCommand(cmd)); }
+                    Ok(cmd) => {
+                        let _ = proxy_ipc.send_event(AppEvent::PanelCommand(cmd));
+                    }
                     Err(e) => warn!("IPC parse error: {e} — body: {body}"),
                 }
             })
@@ -202,16 +216,22 @@ impl VoceApp {
     fn send_to_panel(&self, event: &PanelEvent) {
         if let (Some(wv), true) = (&self.webview, self.panel_open) {
             match event.to_js_call() {
-                Ok(js) => { if let Err(e) = wv.evaluate_script(&js) { warn!("evaluate_script error: {e}"); } }
+                Ok(js) => {
+                    if let Err(e) = wv.evaluate_script(&js) {
+                        warn!("evaluate_script error: {e}");
+                    }
+                }
                 Err(e) => warn!("PanelEvent serialise error: {e}"),
             }
         }
     }
 
     fn show_panel(&mut self) {
-        let Some(window) = &self.panel_window else { return };
+        let Some(window) = &self.panel_window else {
+            return;
+        };
         window.set_visible(true);
-        window.focus_window();
+        window.set_focus();
         self.panel_open = true;
 
         let state_str = self.shared.lock().unwrap().app_state.as_js_str();
@@ -221,7 +241,9 @@ impl VoceApp {
         let paused = self.filter_paused.load(Ordering::Relaxed);
         self.send_to_panel(&PanelEvent::FilterPaused { paused });
         let ns_enabled = self.noise_suppression.load(Ordering::Relaxed);
-        self.send_to_panel(&PanelEvent::NoiseSuppression { enabled: ns_enabled });
+        self.send_to_panel(&PanelEvent::NoiseSuppression {
+            enabled: ns_enabled,
+        });
     }
 
     fn hide_panel(&mut self) {
@@ -232,14 +254,9 @@ impl VoceApp {
     }
 }
 
-impl ApplicationHandler<AppEvent> for VoceApp {
-    fn resumed(&mut self, _event_loop: &ActiveEventLoop) {}
-
-    fn new_events(&mut self, event_loop: &ActiveEventLoop, cause: StartCause) {
-        if cause != StartCause::Init { return; }
-
+impl VoceApp {
+    fn on_init(&mut self, target: &EventLoopWindowTarget<AppEvent>) {
         info!("Voce starting up");
-        event_loop.set_control_flow(ControlFlow::Wait);
 
         // Tray icon
         let icon = load_tray_icon_loading();
@@ -252,7 +269,10 @@ impl ApplicationHandler<AppEvent> for VoceApp {
             .with_icon(icon)
             .build()
         {
-            Ok(tray) => { self.tray_icon = Some(tray); info!("Tray icon created"); }
+            Ok(tray) => {
+                self.tray_icon = Some(tray);
+                info!("Tray icon created");
+            }
             Err(e) => error!("Failed to create tray icon: {e}"),
         }
 
@@ -266,7 +286,7 @@ impl ApplicationHandler<AppEvent> for VoceApp {
         }));
 
         // Pre-create the panel so it's ready before first click
-        self.ensure_panel(event_loop);
+        self.ensure_panel(target);
 
         // Start audio
         self.start_audio();
@@ -293,19 +313,7 @@ impl ApplicationHandler<AppEvent> for VoceApp {
         });
     }
 
-    fn window_event(
-        &mut self,
-        _event_loop: &ActiveEventLoop,
-        _window_id: WindowId,
-        event: WindowEvent,
-    ) {
-        match event {
-            WindowEvent::CloseRequested => self.hide_panel(),
-            _ => {}
-        }
-    }
-
-    fn user_event(&mut self, event_loop: &ActiveEventLoop, event: AppEvent) {
+    fn on_user_event(&mut self, event: AppEvent, control_flow: &mut ControlFlow) {
         match event {
             // ---- Model ready ----
             AppEvent::ModelReady => {
@@ -318,13 +326,15 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                     self.inference_audio_rx.take(),
                     self.inference_cmd_rx.take(),
                 ) {
-                    let gate   = self.gate_state.clone();
+                    let gate = self.gate_state.clone();
                     let paused = self.filter_paused.clone();
-                    let prx2   = self.proxy.clone();
+                    let prx2 = self.proxy.clone();
                     let ns_flag = self.noise_suppression.clone();
                     match Denoiser::new(ns_flag) {
                         Ok(denoiser) => {
-                            self.tokio.spawn(inference::run(m, audio_rx, cmd_rx, gate, paused, denoiser, prx2));
+                            self.tokio.spawn(inference::run(
+                                m, audio_rx, cmd_rx, gate, paused, denoiser, prx2,
+                            ));
                             info!("Inference task spawned (with denoiser)");
                         }
                         Err(e) => {
@@ -343,14 +353,18 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                                 let _ = self.inference_cmd_tx.send(InferenceCmd::StartFilter {
                                     enrolled: Box::new(arr),
                                 });
-                                let _ = self.proxy.send_event(AppEvent::StateChanged(AppState::ActiveStandby));
+                                let _ = self
+                                    .proxy
+                                    .send_event(AppEvent::StateChanged(AppState::ActiveStandby));
                             }
                         }
                         Err(e) => warn!("Could not load existing profile: {e}"),
                     }
                 } else {
                     // First launch — show onboarding
-                    let _ = self.proxy.send_event(AppEvent::StateChanged(AppState::OnboardingReady));
+                    let _ = self
+                        .proxy
+                        .send_event(AppEvent::StateChanged(AppState::OnboardingReady));
                     let _ = self.proxy.send_event(AppEvent::OpenPanel);
                 }
 
@@ -374,19 +388,17 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                 // Update native tray menu status label
                 if let Some(item) = &self.status_item {
                     let label = match &new_state {
-                        AppState::ModelLoading    => "Voce — loading…",
+                        AppState::ModelLoading => "Voce — loading…",
                         AppState::OnboardingReady => "Voce — ready to enroll",
                         AppState::Recording { .. } => "Voce — recording…",
-                        AppState::Adapting        => "Voce — adapting…",
-                        AppState::TestReady       => "Voce — test your voice",
-                        AppState::Testing         => "Voce — testing…",
-                        AppState::PlayingBack
-                        | AppState::PlayingBackRaw => "Voce — playing back…",
-                        AppState::ActiveStandby
-                        | AppState::Filtering     => "Voce — active ●",
-                        AppState::Idle            => "Voce",
+                        AppState::Adapting => "Voce — adapting…",
+                        AppState::TestReady => "Voce — test your voice",
+                        AppState::Testing => "Voce — testing…",
+                        AppState::PlayingBack | AppState::PlayingBackRaw => "Voce — playing back…",
+                        AppState::ActiveStandby | AppState::Filtering => "Voce — active ●",
+                        AppState::Idle => "Voce",
                     };
-                    let _ = item.set_text(label);
+                    item.set_text(label);
                 }
 
                 {
@@ -407,9 +419,16 @@ impl ApplicationHandler<AppEvent> for VoceApp {
 
             // ---- BlackHole status ----
             AppEvent::BlackHoleStatus { found } => {
-                { self.shared.lock().unwrap().blackhole_found = found; }
-                if found { info!("BlackHole 2ch detected"); }
-                else     { warn!("BlackHole not found — install from https://existential.audio/blackhole/"); }
+                {
+                    self.shared.lock().unwrap().blackhole_found = found;
+                }
+                if found {
+                    info!("BlackHole 2ch detected");
+                } else {
+                    warn!(
+                        "BlackHole not found — install from https://existential.audio/blackhole/"
+                    );
+                }
                 self.send_to_panel(&PanelEvent::BlackholeStatus { found });
             }
 
@@ -420,67 +439,87 @@ impl ApplicationHandler<AppEvent> for VoceApp {
             }
 
             // ---- Filter stats (Phase 5) ----
-            AppEvent::FilterStats { similarity, passing } => {
-                { self.shared.lock().unwrap().last_similarity = similarity; }
-                self.send_to_panel(&PanelEvent::FilterStats { similarity, is_passing: passing });
+            AppEvent::FilterStats {
+                similarity,
+                passing,
+            } => {
+                {
+                    self.shared.lock().unwrap().last_similarity = similarity;
+                }
+                self.send_to_panel(&PanelEvent::FilterStats {
+                    similarity,
+                    is_passing: passing,
+                });
                 // Phase 7: update menu item text here
             }
 
             // ---- Recording events (Phase 4) ----
-            AppEvent::RecordingProgress { index, elapsed_s, speech_s } => {
-                self.send_to_panel(&PanelEvent::RecordingProgress { index, elapsed_s, speech_s });
+            AppEvent::RecordingProgress {
+                index,
+                elapsed_s,
+                speech_s,
+            } => {
+                self.send_to_panel(&PanelEvent::RecordingProgress {
+                    index,
+                    elapsed_s,
+                    speech_s,
+                });
             }
             AppEvent::RecordingComplete { index, speech_s } => {
                 self.send_to_panel(&PanelEvent::RecordingComplete { index, speech_s });
             }
             AppEvent::RecordingInvalid { index } => {
-                self.send_to_panel(&PanelEvent::RecordingInvalid { index, reason: "insufficient_speech" });
+                self.send_to_panel(&PanelEvent::RecordingInvalid {
+                    index,
+                    reason: "insufficient_speech",
+                });
             }
 
             // ---- Tray icon click ----
             AppEvent::TrayIcon(tray_event) => {
                 use tray_icon::TrayIconEvent;
-                match tray_event {
-                    TrayIconEvent::Click {
-                        button: tray_icon::MouseButton::Left,
-                        button_state: tray_icon::MouseButtonState::Up,
-                        ..
-                    } => {
-                        let state = self.shared.lock().unwrap().app_state.clone();
-                        let filter_active = matches!(state, AppState::ActiveStandby | AppState::Filtering);
-                        if filter_active {
-                            let paused = !self.filter_paused.load(Ordering::Relaxed);
-                            self.filter_paused.store(paused, Ordering::Relaxed);
-                            let _ = self.proxy.send_event(AppEvent::FilterPaused { paused });
-                        } else {
-                            let _ = self.proxy.send_event(AppEvent::OpenPanel);
-                        }
+                if let TrayIconEvent::Click {
+                    button: tray_icon::MouseButton::Left,
+                    button_state: tray_icon::MouseButtonState::Up,
+                    ..
+                } = tray_event
+                {
+                    let state = self.shared.lock().unwrap().app_state.clone();
+                    let filter_active =
+                        matches!(state, AppState::ActiveStandby | AppState::Filtering);
+                    if filter_active {
+                        let paused = !self.filter_paused.load(Ordering::Relaxed);
+                        self.filter_paused.store(paused, Ordering::Relaxed);
+                        let _ = self.proxy.send_event(AppEvent::FilterPaused { paused });
+                    } else {
+                        let _ = self.proxy.send_event(AppEvent::OpenPanel);
                     }
-                    _ => {}
                 }
             }
 
             // ---- Menu events ----
-            AppEvent::Menu(menu_event) => {
-                match menu_event.id().0.as_str() {
-                    "quit" => {
-                        info!("Quit");
-                        event_loop.exit();
-                    }
-                    "settings" => {
-                        let _ = self.proxy.send_event(AppEvent::OpenPanel);
-                    }
-                    "reenroll" => {
-                        info!("Re-enroll via menu");
-                        let path = config::enrolled_embedding_path();
-                        if path.exists() { let _ = std::fs::remove_file(&path); }
-                        let _ = self.inference_cmd_tx.send(InferenceCmd::StopFilter);
-                        let _ = self.proxy.send_event(AppEvent::StateChanged(AppState::OnboardingReady));
-                        let _ = self.proxy.send_event(AppEvent::OpenPanel);
-                    }
-                    _ => {}
+            AppEvent::Menu(menu_event) => match menu_event.id().0.as_str() {
+                "quit" => {
+                    info!("Quit");
+                    *control_flow = ControlFlow::Exit;
                 }
-            }
+                "settings" => {
+                    let _ = self.proxy.send_event(AppEvent::OpenPanel);
+                }
+                "reenroll" => {
+                    info!("Re-enroll via menu");
+                    let path = config::enrolled_embedding_path();
+                    if path.exists() {
+                        let _ = std::fs::remove_file(&path);
+                    }
+                    let _ = self.inference_cmd_tx.send(InferenceCmd::StopFilter);
+                    let _ = self
+                        .proxy
+                        .send_event(AppEvent::StateChanged(AppState::OnboardingReady));
+                    let _ = self.proxy.send_event(AppEvent::OpenPanel);
+                }
+                _ => {}
+            },
 
             // ---- Panel commands ----
             AppEvent::PanelCommand(cmd) => {
@@ -490,7 +529,9 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                         let _ = open::that("https://existential.audio/blackhole/");
                     }
                     PanelCmd::StartRecording { index } => {
-                        let _ = self.inference_cmd_tx.send(InferenceCmd::StartEnrollment { index });
+                        let _ = self
+                            .inference_cmd_tx
+                            .send(InferenceCmd::StartEnrollment { index });
                     }
                     PanelCmd::StartTest => {
                         let _ = self.inference_cmd_tx.send(InferenceCmd::StartTest);
@@ -509,13 +550,19 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                     }
                     PanelCmd::ConfirmEnrollment => {
                         self.hide_panel();
-                        let _ = self.proxy.send_event(AppEvent::StateChanged(AppState::ActiveStandby));
+                        let _ = self
+                            .proxy
+                            .send_event(AppEvent::StateChanged(AppState::ActiveStandby));
                     }
                     PanelCmd::Reenroll => {
                         let path = config::enrolled_embedding_path();
-                        if path.exists() { let _ = std::fs::remove_file(&path); }
+                        if path.exists() {
+                            let _ = std::fs::remove_file(&path);
+                        }
                         let _ = self.inference_cmd_tx.send(InferenceCmd::StopFilter);
-                        let _ = self.proxy.send_event(AppEvent::StateChanged(AppState::OnboardingReady));
+                        let _ = self
+                            .proxy
+                            .send_event(AppEvent::StateChanged(AppState::OnboardingReady));
                     }
                     PanelCmd::ToggleFilter => {
                         let paused = !self.filter_paused.load(Ordering::Relaxed);
@@ -532,15 +579,24 @@ impl ApplicationHandler<AppEvent> for VoceApp {
             // ---- Enrolled profile ready (inference → main → back to inference) ----
             AppEvent::EnrolledProfileReady(arr) => {
                 info!("Enrolled profile ready — activating filter");
-                let _ = self.inference_cmd_tx.send(InferenceCmd::StartFilter { enrolled: arr });
+                let _ = self
+                    .inference_cmd_tx
+                    .send(InferenceCmd::StartFilter { enrolled: arr });
             }
 
             // ---- Test capture events (Phase 6) ----
             AppEvent::TestProgress { elapsed_s } => {
                 self.send_to_panel(&PanelEvent::TestProgress { elapsed_s });
             }
-            AppEvent::TestCaptureComplete { samples, raw_samples, voice_pct } => {
-                info!("Test capture complete — playing back {} samples", samples.len());
+            AppEvent::TestCaptureComplete {
+                samples,
+                raw_samples,
+                voice_pct,
+            } => {
+                info!(
+                    "Test capture complete — playing back {} samples",
+                    samples.len()
+                );
                 self.last_test_samples = Some(samples.clone());
                 self.last_test_raw_samples = Some(raw_samples.clone());
                 self.send_to_panel(&PanelEvent::TestStats { voice_pct });
@@ -588,32 +644,26 @@ impl ApplicationHandler<AppEvent> for VoceApp {
                     }
                 }
             }
-
         }
     }
-
-    fn about_to_wait(&mut self, _event_loop: &ActiveEventLoop) {}
 }
 
 // ---------------------------------------------------------------------------
 // Audio playback helper
 // ---------------------------------------------------------------------------
 
-async fn play_samples(
-    samples: Vec<f32>,
-    stop: Arc<AtomicBool>,
-    proxy: EventLoopProxy<AppEvent>,
-) {
-    use std::time::Duration;
+async fn play_samples(samples: Vec<f32>, stop: Arc<AtomicBool>, proxy: EventLoopProxy<AppEvent>) {
     use std::thread;
+    use std::time::Duration;
 
     let stop_clone = stop.clone();
-    let proxy_clone = proxy.clone();
     tokio::task::spawn_blocking(move || {
         use rodio::buffer::SamplesBuffer;
+        #[allow(deprecated)]
         use rodio::cpal::traits::{DeviceTrait, HostTrait};
 
         let host = rodio::cpal::default_host();
+        #[allow(deprecated)]
         let speaker = host.output_devices().ok().and_then(|mut devs| {
             devs.find(|d| {
                 d.name()
@@ -625,14 +675,14 @@ async fn play_samples(
             })
         });
 
+        #[allow(deprecated)]
         let stream_result = if let Some(device) = speaker {
             info!("Test playback via: {}", device.name().unwrap_or_default());
             rodio::OutputStreamBuilder::from_device(device)
                 .map_err(|e| anyhow::anyhow!("{e}"))
                 .and_then(|b| b.open_stream().map_err(|e| anyhow::anyhow!("{e}")))
         } else {
-            rodio::OutputStreamBuilder::open_default_stream()
-                .map_err(|e| anyhow::anyhow!("{e}"))
+            rodio::OutputStreamBuilder::open_default_stream().map_err(|e| anyhow::anyhow!("{e}"))
         };
 
         match stream_result {
@@ -654,7 +704,9 @@ async fn play_samples(
             Err(e) => warn!("Could not open audio output for playback: {e}"),
         }
         stop_clone.store(false, Ordering::Relaxed);
-    }).await.ok();
+    })
+    .await
+    .ok();
     let _ = proxy.send_event(AppEvent::StateChanged(AppState::TestReady));
 }
 
@@ -664,12 +716,17 @@ async fn play_samples(
 
 fn build_tray_menu() -> (muda::Menu, muda::MenuItem) {
     use muda::{Menu, MenuItem, PredefinedMenuItem};
-    let menu   = Menu::new();
+    let menu = Menu::new();
     let status = MenuItem::with_id("status", "Voce — loading…", false, None);
     let _ = menu.append(&status);
     let _ = menu.append(&PredefinedMenuItem::separator());
     let _ = menu.append(&MenuItem::with_id("settings", "Settings…", true, None));
-    let _ = menu.append(&MenuItem::with_id("reenroll", "Re-enroll voice…", true, None));
+    let _ = menu.append(&MenuItem::with_id(
+        "reenroll",
+        "Re-enroll voice…",
+        true,
+        None,
+    ));
     let _ = menu.append(&PredefinedMenuItem::separator());
     let _ = menu.append(&MenuItem::with_id("quit", "Quit Voce", true, None));
     (menu, status)
@@ -749,7 +806,11 @@ fn main() -> anyhow::Result<()> {
     if let Some(wav) = args.eval_enroll {
         init_eval_logging();
         let rt = build_rt()?;
-        let code = rt.block_on(eval::run_enroll_from_wav(wav, args.eval_enroll_2, args.eval_enroll_out))?;
+        let code = rt.block_on(eval::run_enroll_from_wav(
+            wav,
+            args.eval_enroll_2,
+            args.eval_enroll_out,
+        ))?;
         std::process::exit(code);
     }
 
@@ -777,21 +838,42 @@ fn main() -> anyhow::Result<()> {
 
     use tracing_subscriber::prelude::*;
     tracing_subscriber::registry()
-        .with(tracing_subscriber::fmt::layer().with_ansi(false).with_writer(log_writer))
+        .with(
+            tracing_subscriber::fmt::layer()
+                .with_ansi(false)
+                .with_writer(log_writer),
+        )
         .with(tracing_subscriber::fmt::layer().with_writer(std::io::stderr))
         .with(filter)
         .init();
 
-    info!("Voce v{} — logging to: {}", env!("CARGO_PKG_VERSION"), voce_dir.display());
+    info!(
+        "Voce v{} — logging to: {}",
+        env!("CARGO_PKG_VERSION"),
+        voce_dir.display()
+    );
 
     let rt = tokio::runtime::Builder::new_multi_thread()
-        .worker_threads(2).enable_all().build()?;
+        .worker_threads(2)
+        .enable_all()
+        .build()?;
     let tokio_handle = rt.handle().clone();
     let _rt = rt;
 
-    let event_loop = EventLoop::<AppEvent>::with_user_event().build()?;
+    let event_loop = EventLoopBuilder::<AppEvent>::with_user_event().build();
     let proxy = event_loop.create_proxy();
     let mut app = VoceApp::new(proxy, tokio_handle);
-    event_loop.run_app(&mut app)?;
-    Ok(())
+
+    event_loop.run(move |event, target, control_flow| {
+        *control_flow = ControlFlow::Wait;
+        match event {
+            Event::NewEvents(StartCause::Init) => app.on_init(target),
+            Event::WindowEvent {
+                event: WindowEvent::CloseRequested,
+                ..
+            } => app.hide_panel(),
+            Event::UserEvent(ev) => app.on_user_event(ev, control_flow),
+            _ => {}
+        }
+    });
 }
