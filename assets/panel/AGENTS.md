@@ -1,6 +1,6 @@
 # assets/panel/ — Frontend Architecture
 
-The frontend is a SolidJS 1.x single-file application that communicates with the Rust backend via IPC. It presents 12 screens that guide the user through enrollment, testing, and active filtering.
+The frontend is a SolidJS 1.x single-file application that communicates with the Rust backend via IPC. It presents 13 screens that guide the user through enrollment, testing, and active filtering.
 
 ---
 
@@ -28,6 +28,7 @@ assets/panel/src/
 ├── types.ts            # Type definitions (Screen enum, IPC types)
 ├── components/
 │   ├── Loading.tsx     # Spinner during model download
+│   ├── DriverSetup.tsx # Driver installation + device setup
 │   ├── Onboarding.tsx  # Enrollment flow (recording 1/2, adapting)
 │   ├── Test.tsx        # Test mode (filter validation)
 │   ├── Active.tsx      # Running filter (filter stats, playback)
@@ -48,11 +49,12 @@ dist/
 
 ## Screen → Component Mapping
 
-The `Screen` type is a union of 12 screen names. `App.tsx` routes based on `state.screen()`:
+The `Screen` type is a union of 13 screen names. `App.tsx` routes based on `state.screen()`:
 
 | Screen | Component | State | Purpose |
 |--------|-----------|-------|---------|
 | `loading` | `Loading` | `IDLE` / `MODEL_LOADING` | Spinner; downloading ONNX models |
+| `driver-setup` | `DriverSetup` | `ACTIVE_STANDBY` (conditional) | Driver installation + device setup |
 | `onboarding-ready` | `Onboarding` | `ONBOARDING_READY` | "Ready to record sample 1" |
 | `recording-1` | `Onboarding` | `RECORDING_1` | Recording enrollment sample 1 |
 | `recording-1-invalid` | `Onboarding` | — (custom) | "Insufficient speech; try again" |
@@ -98,6 +100,10 @@ The `useAppState()` hook exports a single state object with signals and setters:
 | `noiseSuppression()` / `setNoiseSuppression()` | `boolean` | Denoiser enabled? |
 | `downloadFraction()` / `setDownloadFraction()` | `number` | Model download progress (0.0–1.0) |
 | `isDownloading()` / `setIsDownloading()` | `boolean` | Model download in progress? |
+| `driverInstalled()` / `setDriverInstalled()` | `boolean` | Driver installation status |
+| `voceDeviceFound()` / `setVoceDeviceFound()` | `boolean` | Voce Microphone device detected? |
+| `hasSeenDriverSetup()` / `setHasSeenDriverSetup()` | `boolean` | Session flag: skip driver-setup on re-entry? |
+| `resetSuccess()` / `setResetSuccess()` | `boolean \| null` | Full reset operation result |
 
 ### window.__voce_update Handler
 
@@ -143,6 +149,9 @@ The `useIpc()` hook returns an object with methods to send commands to Rust:
 | `openBlackholeLink()` | `open_blackhole_link` | — | Open BlackHole download in browser |
 | `toggleFilter()` | `toggle_filter` | — | Pause/resume filter (Phase 8) |
 | `setNoiseSuppression(enabled)` | `set_noise_suppression` | `enabled: bool` | Enable/disable denoiser |
+| `installDriver()` | `install_driver` | — | Background driver installation |
+| `fullReset()` | `full_reset` | — | Full reset (wipe config + driver) |
+| `openSystemSound()` | `open_system_sound` | — | Open macOS Sound preferences |
 
 ### Typical Usage
 

@@ -62,6 +62,9 @@ Commands sent from the panel via `window.ipc.send(JSON)`. Defined in `src/panel/
 | `OpenBlackholeLink` | `"open_blackhole_link"` | — | Open BlackHole download link |
 | `ToggleFilter` | `"toggle_filter"` | — | Pause/resume filter (Phase 8) |
 | `SetNoiseSuppression{enabled}` | `"set_noise_suppression"` | `enabled: bool` | Enable/disable denoiser |
+| `InstallDriver` | `"install_driver"` | — | Background driver installation |
+| `FullReset` | `"full_reset"` | — | Full reset (wipe config + driver) |
+| `OpenSystemSound` | `"open_system_sound"` | — | Open macOS Sound preferences |
 
 ### JSON Format
 
@@ -92,6 +95,8 @@ Events sent from Rust to JS via `webview.evaluate_script(window.__voce_update(..
 | `TestStats{voice_pct}` | `"test_stats"` | `voice_pct: f32` | Test recording voice % (after playback) |
 | `FilterPaused{paused}` | `"filter_paused"` | `paused: bool` | Filter toggle state (Phase 8) |
 | `NoiseSuppression{enabled}` | `"noise_suppression"` | `enabled: bool` | Denoiser toggle state |
+| `DriverStatus{installed, device_found}` | `"driver_status"` | `installed: bool`, `device_found: bool` | Driver installation + device detection status |
+| `ResetComplete{success}` | `"reset_complete"` | `success: bool` | Full reset operation completed |
 
 ### JSON Format
 
