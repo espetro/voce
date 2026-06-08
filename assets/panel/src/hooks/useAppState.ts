@@ -23,6 +23,11 @@ export function createAppState() {
   const [downloadFraction, setDownloadFraction] = createSignal(0);
   const [isDownloading, setIsDownloading] = createSignal(false);
 
+  const [driverInstalled, setDriverInstalled] = createSignal(false);
+  const [voceDeviceFound, setVoceDeviceFound] = createSignal(false);
+  const [hasSeenDriverSetup, setHasSeenDriverSetup] = createSignal(false);
+  const [resetSuccess, setResetSuccess] = createSignal<boolean | null>(null);
+
   function handleStateChanged(state: string) {
     switch (state) {
       case 'IDLE':
@@ -68,7 +73,11 @@ export function createAppState() {
       case 'FILTERING':
         setFilterPaused(false);
         setSimilarity(null);
-        setScreen('active');
+        if (!voceDeviceFound() && !hasSeenDriverSetup()) {
+          setScreen('driver-setup');
+        } else {
+          setScreen('active');
+        }
         break;
     }
   }
@@ -117,6 +126,14 @@ export function createAppState() {
       case 'noise_suppression':
         setNoiseSuppression(msg.enabled !== false);
         break;
+      case 'driver_status':
+        setDriverInstalled(msg.installed === true);
+        setVoceDeviceFound(msg.device_found === true);
+        break;
+      case 'reset_complete':
+        setResetSuccess(msg.success === true);
+        setScreen('loading');
+        break;
     }
   };
 
@@ -127,6 +144,10 @@ export function createAppState() {
     filterPaused, similarity, isPassing,
     voicePct, noiseSuppression,
     downloadFraction, isDownloading,
+    driverInstalled, setDriverInstalled,
+    voceDeviceFound, setVoceDeviceFound,
+    hasSeenDriverSetup, setHasSeenDriverSetup,
+    resetSuccess, setResetSuccess,
   };
 }
 
