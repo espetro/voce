@@ -11,35 +11,57 @@ Does not exist.
 
 ```
 ┌──────────────────────────────────┐
-│ ←  Settings                      │  ← back arrow returns to screen 14
+│ ←  Settings                      │
 │ ────────────────────────────── │
 │                                  │
-│ NOISE SUPPRESSION                │
-│ On  [●────────]                  │  ← ArkUI Switch
-│ Reduces background noise before  │
-│ speaker filtering.               │
+│ AUDIO                            │
+│ Noise Suppression  [On ●──────]  │
+│ Reduces background noise…        │
+│                                  │
+│ Voice Filter       [On ●──────]  │
+│ Filters other speakers…          │
+│ ────────────────────────────── │
+│ VOCE MICROPHONE                  │
+│ ✓ Device active                  │  ← CheckCircle green OR grey dot
 │                                  │
 │ ────────────────────────────── │
-│                                  │
-│ VOICE FILTER                     │
-│ On  [●────────]                  │  ← mirrors active screen toggle
-│ Filters out other speakers in    │
-│ real time.                       │
-│                                  │
-│ ────────────────────────────── │
-│                                  │
+│ ENROLLMENT                       │
 │ ┌────────────────────────────┐   │
 │ │     Re-enroll voice…       │   │
 │ └────────────────────────────┘   │
+│                                  │
+│ ────────────────────────────── │
+│ DATA                             │
+│   Reset everything…              │  ← danger button
+│ ────────────────────────────── │
+│  [logo]  ● Voce Microphone  ▾   │  ← status bar (bottom, sticky)
+│          ┌──────────────────┐    │  ← tooltip (shown when ▾ clicked)
+│          │ ● Driver installed│   │
+│          │ ● Device active   │   │
+│          └──────────────────┘    │
 └──────────────────────────────────┘
 ```
 
-**Notes:**
-- Noise Suppression toggle → dispatches `SetNoiseSuppression(bool)` IPC cmd
-- Voice Filter toggle state is kept in sync with screen 14's toggle
-  (both read the same `filter_paused` signal)
-- Re-enroll shortcut here for discoverability
-- No per-session state: both toggles persist via `config.noise_suppression`
-  and `filter_paused` AtomicBool respectively
-- No threshold slider in V1 — too many knobs; similarity threshold stays
-  hardcoded at 0.75
+**Implementation:**
+- Settings component converted from arrow function to function body to support `createSignal` for dialog/tooltip state
+- New "Voce Microphone" status section with CheckCircle (green) or grey dot icon
+- New "Data" section with "Reset everything…" button (danger style)
+- Status bar (sticky bottom) shows logo + "Voce Microphone" label + collapsible tooltip button (▾)
+- Tooltip displays two rows: driver installation status + device active status
+- Reset button opens confirmation dialog listing what will be deleted:
+  - Voice enrollment profile
+  - App configuration
+  - Downloaded models
+  - Voce Microphone audio driver
+
+**Signals:**
+- `driverInstalled()` — driver installation status
+- `voceDeviceFound()` — device detection status
+- `showStatusTooltip` (local createSignal) — tooltip visibility
+- `showResetDialog` (local createSignal) — reset confirmation dialog visibility
+
+**IPC Methods:**
+- `setNoiseSuppression(enabled)` — enable/disable denoiser
+- `toggleFilter()` — pause/resume speaker filter
+- `reenroll()` — restart enrollment flow
+- `fullReset()` — trigger full reset (config + driver)
