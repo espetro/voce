@@ -127,7 +127,7 @@ impl Drop for RingBufferWriter {
 const DRIVER_BUNDLE: &str = "VoceAudio.driver";
 
 /// Returns `~/Library/Audio/Plug-Ins/HAL/VoceAudio.driver`.
-fn hal_install_path() -> Result<PathBuf> {
+pub(crate) fn hal_install_path() -> Result<PathBuf> {
     let home = dirs::home_dir().context("cannot determine home directory")?;
     Ok(home.join("Library/Audio/Plug-Ins/HAL").join(DRIVER_BUNDLE))
 }
@@ -170,18 +170,13 @@ pub fn voce_device_found() -> bool {
         .unwrap_or(false)
 }
 
-/// Install the HAL driver if not already present, then tell coreaudiod to reload.
-///
-/// Safe to call on every launch — skips the copy if the bundle is already installed.
+/// Install the HAL driver, forcing reinstall if already present, then tell coreaudiod to reload.
 pub fn ensure_installed() -> Result<()> {
     let install_path = hal_install_path()?;
 
     if install_path.exists() {
-        info!(
-            "VoceAudio.driver already installed at {}",
-            install_path.display()
-        );
-        return Ok(());
+        info!("Removing stale VoceAudio.driver at {}", install_path.display());
+        std::fs::remove_dir_all(&install_path).context("failed to remove stale driver")?;
     }
 
     let src = bundled_driver_path()
@@ -211,6 +206,39 @@ pub fn ensure_installed() -> Result<()> {
 
     info!("VoceAudio.driver installed");
     Ok(())
+}
+
+/// Uninstall the HAL driver and signal coreaudiod.
+pub fn uninstall() -> Result<()> {
+    let install_path = hal_install_path()?;
+
+    if install_path.exists() {
+        info!("Uninstalling VoceAudio.driver at {}", install_path.display());
+        std::fs::remove_dir_all(&install_path).context("failed to remove driver")?;
+    }
+
+    // Signal coreaudiod to reload — non-fatal if it fails
+    let status = Command::new("launchctl")
+        .args(["kickstart", "-k", "system/com.apple.audio.coreaudiod"])
+        .status();
+    match status {
+        Ok(s) if s.success() => {
+            info!("coreaudiod reloading — waiting 1.5s...");
+            std::thread::sleep(Duration::from_millis(1500));
+        }
+        Ok(s) => warn!("launchctl exited {:?}", s.code()),
+        Err(e) => warn!("launchctl failed: {e}"),
+    }
+
+    info!("VoceAudio.driver uninstalled");
+    Ok(())
+}
+
+/// Check if the HAL driver is installed.
+pub fn is_installed() -> bool {
+    hal_install_path()
+        .map(|p| p.exists())
+        .unwrap_or(false)
 }
 
 fn copy_dir_recursive(src: &std::path::Path, dst: &std::path::Path) -> Result<()> {
