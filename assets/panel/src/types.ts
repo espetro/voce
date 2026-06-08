@@ -1,5 +1,6 @@
 export type Screen =
   | 'loading'
+  | 'driver-setup'
   | 'onboarding-ready'
   | 'recording-1'
   | 'recording-1-invalid'
