@@ -170,6 +170,20 @@ pub fn voce_device_found() -> bool {
         .unwrap_or(false)
 }
 
+/// Restart coreaudiod with admin privilege escalation via osascript.
+fn restart_coreaudiod() {
+    let script = "do shell script \"launchctl kickstart -k system/com.apple.audio.coreaudiod\" with administrator privileges";
+    let status = Command::new("osascript").args(["-e", script]).status();
+    match status {
+        Ok(s) if s.success() => {
+            info!("coreaudiod reloading — waiting 1.5s...");
+            std::thread::sleep(Duration::from_millis(1500));
+        }
+        Ok(s) => warn!("osascript exited {:?}", s.code()),
+        Err(e) => warn!("osascript failed: {e}"),
+    }
+}
+
 /// Install the HAL driver, forcing reinstall if already present, then tell coreaudiod to reload.
 pub fn ensure_installed() -> Result<()> {
     let install_path = hal_install_path()?;
@@ -191,18 +205,8 @@ pub fn ensure_installed() -> Result<()> {
 
     copy_dir_recursive(&src, &install_path).context("failed to copy VoceAudio.driver")?;
 
-    // Signal coreaudiod to reload — non-fatal if it fails
-    let status = Command::new("launchctl")
-        .args(["kickstart", "-k", "system/com.apple.audio.coreaudiod"])
-        .status();
-    match status {
-        Ok(s) if s.success() => {
-            info!("coreaudiod reloading — waiting 1.5s...");
-            std::thread::sleep(Duration::from_millis(1500));
-        }
-        Ok(s) => warn!("launchctl exited {:?}", s.code()),
-        Err(e) => warn!("launchctl failed: {e}"),
-    }
+    // Signal coreaudiod to reload with privilege escalation
+    restart_coreaudiod();
 
     info!("VoceAudio.driver installed");
     Ok(())
@@ -217,18 +221,8 @@ pub fn uninstall() -> Result<()> {
         std::fs::remove_dir_all(&install_path).context("failed to remove driver")?;
     }
 
-    // Signal coreaudiod to reload — non-fatal if it fails
-    let status = Command::new("launchctl")
-        .args(["kickstart", "-k", "system/com.apple.audio.coreaudiod"])
-        .status();
-    match status {
-        Ok(s) if s.success() => {
-            info!("coreaudiod reloading — waiting 1.5s...");
-            std::thread::sleep(Duration::from_millis(1500));
-        }
-        Ok(s) => warn!("launchctl exited {:?}", s.code()),
-        Err(e) => warn!("launchctl failed: {e}"),
-    }
+    // Signal coreaudiod to reload with privilege escalation
+    restart_coreaudiod();
 
     info!("VoceAudio.driver uninstalled");
     Ok(())
