@@ -46,6 +46,7 @@ struct SharedState {
     blackhole_found: bool,
     last_similarity: f32,
     models: Option<model::ModelSet>,
+    voce_device_found: bool,
 }
 
 impl SharedState {
@@ -55,6 +56,7 @@ impl SharedState {
             blackhole_found: false,
             last_similarity: 0.0,
             models: None,
+            voce_device_found: false,
         }
     }
 }
@@ -244,6 +246,14 @@ impl VoceApp {
         self.send_to_panel(&PanelEvent::NoiseSuppression {
             enabled: ns_enabled,
         });
+        let shared = self.shared.lock().unwrap();
+        let device_found = shared.voce_device_found;
+        drop(shared);
+        let installed = driver::is_installed();
+        self.send_to_panel(&PanelEvent::DriverStatus {
+            installed,
+            device_found,
+        });
     }
 
     fn hide_panel(&mut self) {
@@ -291,6 +301,25 @@ impl VoceApp {
         // Start audio
         self.start_audio();
         audio::capture::spawn_device_watcher(self.proxy.clone());
+
+        // Background driver installation
+        let proxy_driver = self.proxy.clone();
+        std::thread::spawn(move || {
+            match driver::ensure_installed() {
+                Ok(_) => {
+                    info!("VoceAudio.driver installed successfully");
+                }
+                Err(e) => {
+                    warn!("VoceAudio driver install failed: {e}");
+                }
+            }
+            let device_found = driver::voce_device_found();
+            let installed = driver::is_installed();
+            let _ = proxy_driver.send_event(AppEvent::DriverStatus {
+                installed,
+                device_found,
+            });
+        });
 
         // Model loading
         let proxy_bg = self.proxy.clone();
@@ -574,6 +603,33 @@ impl VoceApp {
                         self.noise_suppression.store(enabled, Ordering::Relaxed);
                         self.send_to_panel(&PanelEvent::NoiseSuppression { enabled });
                     }
+                    PanelCmd::InstallDriver => {
+                        let proxy_install = self.proxy.clone();
+                        std::thread::spawn(move || {
+                            match driver::ensure_installed() {
+                                Ok(_) => {
+                                    info!("VoceAudio.driver installed successfully");
+                                }
+                                Err(e) => {
+                                    warn!("VoceAudio driver install failed: {e}");
+                                }
+                            }
+                            let device_found = driver::voce_device_found();
+                            let installed = driver::is_installed();
+                            let _ = proxy_install.send_event(AppEvent::DriverStatus {
+                                installed,
+                                device_found,
+                            });
+                        });
+                    }
+                    PanelCmd::FullReset => {
+                        let _ = self.proxy.send_event(AppEvent::FullReset);
+                    }
+                    PanelCmd::OpenSystemSound => {
+                        let _ = std::process::Command::new("open")
+                            .arg("x-apple.systempreferences:com.apple.preference.sound")
+                            .spawn();
+                    }
                 }
             }
 
@@ -649,6 +705,67 @@ impl VoceApp {
             AppEvent::InputDeviceChanged => {
                 info!("Default input device changed — restarting capture");
                 self.restart_capture();
+            }
+
+            AppEvent::DriverStatus {
+                installed,
+                device_found,
+            } => {
+                info!(
+                    "Driver status: installed={}, device_found={}",
+                    installed, device_found
+                );
+                self.shared.lock().unwrap().voce_device_found = device_found;
+                self.send_to_panel(&PanelEvent::DriverStatus {
+                    installed,
+                    device_found,
+                });
+            }
+
+            AppEvent::FullReset => {
+                info!("Full reset initiated");
+                self.gate_state.store(false, Ordering::Relaxed);
+                let _ = self.inference_cmd_tx.send(InferenceCmd::StopFilter);
+
+                let proxy_reset = self.proxy.clone();
+                std::thread::spawn(move || {
+                    let voce_dir = config::voce_dir();
+                    let success = if voce_dir.exists() {
+                        match std::fs::remove_dir_all(&voce_dir) {
+                            Ok(_) => {
+                                info!("Removed voce_dir at {}", voce_dir.display());
+                                true
+                            }
+                            Err(e) => {
+                                warn!("Failed to remove voce_dir: {e}");
+                                false
+                            }
+                        }
+                    } else {
+                        true
+                    };
+
+                    if success {
+                        match driver::uninstall() {
+                            Ok(_) => {
+                                info!("Driver uninstalled successfully");
+                            }
+                            Err(e) => {
+                                warn!("Driver uninstall failed: {e}");
+                            }
+                        }
+                    }
+
+                    let _ = proxy_reset.send_event(AppEvent::ResetComplete { success });
+                });
+            }
+
+            AppEvent::ResetComplete { success } => {
+                info!("Reset complete: success={}", success);
+                self.send_to_panel(&PanelEvent::ResetComplete { success });
+                let _ = self
+                    .proxy
+                    .send_event(AppEvent::StateChanged(AppState::Idle));
             }
         }
     }
@@ -867,11 +984,7 @@ fn main() -> anyhow::Result<()> {
         std::process::exit(code);
     }
 
-    // Install bundled VoceAudio HAL driver if not already present.
-    // Non-fatal: if it fails the user falls back to BlackHole.
-    if let Err(e) = driver::ensure_installed() {
-        tracing::warn!("VoceAudio driver install skipped: {e}");
-    }
+    // Driver installation moved to background task in on_init() to avoid blocking startup
 
     let voce_dir = config::voce_dir();
     std::fs::create_dir_all(&voce_dir)?;
