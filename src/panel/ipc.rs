@@ -22,32 +22,60 @@ pub enum PanelCmd {
 #[derive(Debug, Serialize)]
 #[serde(tag = "event", rename_all = "snake_case")]
 pub enum PanelEvent {
-    StateChanged { state: &'static str },
-    RecordingProgress { index: u8, elapsed_s: u32, speech_s: u32 },
-    RecordingComplete { index: u8, speech_s: u32 },
-    RecordingInvalid { index: u8, reason: &'static str },
-    TestProgress { elapsed_s: u32 },
-    FilterStats { similarity: f32, is_passing: bool },
-    BlackholeStatus { found: bool },
-    DownloadProgress { fraction: f32 },
-    TestStats { voice_pct: f32 },
+    StateChanged {
+        state: &'static str,
+    },
+    RecordingProgress {
+        index: u8,
+        elapsed_s: u32,
+        speech_s: u32,
+    },
+    RecordingComplete {
+        index: u8,
+        speech_s: u32,
+    },
+    RecordingInvalid {
+        index: u8,
+        reason: &'static str,
+    },
+    TestProgress {
+        elapsed_s: u32,
+    },
+    FilterStats {
+        similarity: f32,
+        is_passing: bool,
+    },
+    BlackholeStatus {
+        found: bool,
+    },
+    DownloadProgress {
+        fraction: f32,
+    },
+    TestStats {
+        voice_pct: f32,
+    },
     // Phase 8
-    FilterPaused { paused: bool },
-    NoiseSuppression { enabled: bool },
+    FilterPaused {
+        paused: bool,
+    },
+    NoiseSuppression {
+        enabled: bool,
+    },
 }
 
 impl PanelEvent {
     /// Produce a JS `evaluate_script` call string:
-    ///   `window.__voce_update("<escaped-json>")`
+    ///   `window.__voce_update(<json-string-literal>)`
     ///
-    /// The JSON is serialised, then embedded as a JS string literal with
-    /// internal double-quotes and backslashes escaped.
+    /// The event is serialised to JSON, then that JSON string is itself
+    /// JSON-encoded to produce a valid JS string literal argument.
+    /// This handles all Unicode escapes (including U+2028/U+2029) correctly.
     pub fn to_js_call(&self) -> anyhow::Result<String> {
-        let json = serde_json::to_string(self)?;
-        // Escape backslashes first, then double-quotes, so the JSON can be
-        // safely embedded inside a JS double-quoted string literal.
-        let escaped = json.replace('\\', "\\\\").replace('"', "\\\"");
-        Ok(format!("window.__voce_update(\"{}\")", escaped))
+        let payload = serde_json::to_string(self)?;
+        Ok(format!(
+            "window.__voce_update({})",
+            serde_json::to_string(&payload)?
+        ))
     }
 }
 
