@@ -9,6 +9,7 @@ target/
 ._*
 .Spotlight-V100
 .Trashes
+voce.app/
 
 # Project-specific
 # voce.app is the release template (tracked). Exclude only the compiled binary inside it.
