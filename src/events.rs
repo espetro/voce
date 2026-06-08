@@ -1,5 +1,7 @@
 use crate::app_state::AppState;
+use crate::audio::buffer::AudioChunk;
 use crate::panel::ipc::PanelCmd;
+use crossbeam_channel::Receiver;
 
 /// All cross-thread messages that funnel through the tao event loop.
 #[derive(Debug)]
@@ -50,6 +52,8 @@ pub enum AppEvent {
     FilterPaused {
         paused: bool,
     },
+    // Device watcher: system default input changed while running
+    InputDeviceChanged,
 }
 
 /// Commands sent from the main thread → inference task.
@@ -62,4 +66,6 @@ pub enum InferenceCmd {
     // Phase 6:
     StartTest,
     StopTest,
+    // Device watcher: swap audio source after mic change
+    ReplaceAudioRx(Receiver<AudioChunk>),
 }

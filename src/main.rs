@@ -290,6 +290,7 @@ impl VoceApp {
 
         // Start audio
         self.start_audio();
+        audio::capture::spawn_device_watcher(self.proxy.clone());
 
         // Model loading
         let proxy_bg = self.proxy.clone();
@@ -644,7 +645,51 @@ impl VoceApp {
                     }
                 }
             }
+
+            AppEvent::InputDeviceChanged => {
+                info!("Default input device changed — restarting capture");
+                self.restart_capture();
+            }
         }
+    }
+}
+
+impl VoceApp {
+    /// Drop and recreate the capture + output streams after a mic change.
+    /// Sends `ReplaceAudioRx` to the inference task so it drains from the new channel.
+    fn restart_capture(&mut self) {
+        self._capture = None;
+        self._output = None;
+
+        let (audio_tx, audio_rx) = bounded::<AudioChunk>(64);
+        let (inf_tx, inf_rx) = bounded::<AudioChunk>(64);
+
+        match CaptureStream::start(audio_tx.clone(), Some(inf_tx)) {
+            Ok(s) => {
+                self._capture = Some(s);
+                self.audio_tx = audio_tx;
+                info!("Capture stream restarted");
+            }
+            Err(e) => {
+                error!("Failed to restart capture: {e}");
+                return;
+            }
+        }
+
+        match OutputStream::start(audio_rx, self.gate_state.clone()) {
+            Ok(s) => {
+                self._output = Some(s);
+                let _ = self.proxy.send_event(AppEvent::BlackHoleStatus { found: true });
+            }
+            Err(e) => {
+                warn!("Output not restarted after mic change: {e}");
+                let _ = self.proxy.send_event(AppEvent::BlackHoleStatus { found: false });
+            }
+        }
+
+        let _ = self
+            .inference_cmd_tx
+            .send(InferenceCmd::ReplaceAudioRx(inf_rx));
     }
 }
 

@@ -1,4 +1,5 @@
 use crate::audio::buffer::AudioChunk;
+use crate::events::AppEvent;
 use anyhow::{Context, Result};
 use cpal::{
     traits::{DeviceTrait, HostTrait, StreamTrait},
@@ -7,6 +8,7 @@ use cpal::{
 use crossbeam_channel::{Sender, TrySendError};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
+use tao::event_loop::EventLoopProxy;
 use tracing::{info, warn};
 
 const TARGET_HZ: u32 = 16000;
@@ -116,6 +118,34 @@ impl CaptureStream {
         info!("Capture stream started at {TARGET_HZ} Hz (device: {device_rate} Hz)");
         Ok(CaptureStream { _stream: stream })
     }
+}
+
+/// Polls the system default input device every 2 s and fires `InputDeviceChanged`
+/// through the event loop proxy if it changes.  Runs for the lifetime of the process.
+pub fn spawn_device_watcher(proxy: EventLoopProxy<AppEvent>) {
+    std::thread::spawn(move || {
+        let mut last_name = current_input_device_name();
+        loop {
+            std::thread::sleep(std::time::Duration::from_secs(2));
+            let name = current_input_device_name();
+            if name != last_name {
+                info!("Input device changed: {last_name:?} → {name:?}");
+                last_name = name;
+                let _ = proxy.send_event(AppEvent::InputDeviceChanged);
+            }
+        }
+    });
+}
+
+fn current_input_device_name() -> String {
+    cpal::default_host()
+        .default_input_device()
+        .map(|d| {
+            d.description()
+                .map(|desc| desc.name().to_string())
+                .unwrap_or_default()
+        })
+        .unwrap_or_default()
 }
 
 fn pick_input_config(device: &cpal::Device) -> Result<StreamConfig> {

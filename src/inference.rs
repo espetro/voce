@@ -115,7 +115,7 @@ enum Mode {
 /// Start the inference task. Runs until the process exits.
 pub async fn run(
     mut models: ModelSet,
-    audio_rx: Receiver<AudioChunk>,
+    mut audio_rx: Receiver<AudioChunk>,
     cmd_rx: Receiver<InferenceCmd>,
     gate_state: Arc<AtomicBool>,
     filter_paused: Arc<AtomicBool>,
@@ -185,6 +185,11 @@ pub async fn run(
                     } else {
                         warn!("StartTest received while not in Filtering mode — ignored");
                     }
+                }
+
+                InferenceCmd::ReplaceAudioRx(new_rx) => {
+                    info!("Audio source replaced — draining old channel");
+                    audio_rx = new_rx;
                 }
 
                 InferenceCmd::StopTest => {
