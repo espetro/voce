@@ -47,7 +47,7 @@ Voce uses a hybrid model:
 
 ```mermaid
 graph TB
-    subgraph Main["🔄 Main Thread (winit event loop)"]
+    subgraph Main["🔄 Main Thread (tao event loop)"]
         dispatch["AppEvent Dispatch<br/>StateChanged → PanelEvent<br/>PanelCommand → match<br/>FilterStats → Panel"]
     end
     
@@ -115,8 +115,8 @@ sequenceDiagram
     rust->>rust: AppEvent emitted
     rust->>rust: PanelEvent::from(AppEvent)
     rust->>rust: Serialize to JSON
-    rust->>rust: Escape backslashes, then quotes
-    rust->>js: webview.evaluate_script()<br/>window.__voce_update("JSON")
+    rust->>rust: serde_json::to_string() double-encode
+    rust->>js: webview.evaluate_script()<br/>window.__voce_update(JSON)
     js->>js: JSON.parse(jsonStr)
     js->>js: useAppState handlers
     js->>js: Update Solid signals

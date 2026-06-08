@@ -1,6 +1,6 @@
 # src/ — Rust Backend Architecture
 
-The Rust backend runs on the main thread (winit event loop) and coordinates audio capture, ONNX inference, IPC with the panel, and filter state. It does not use async/await for the main app loop; I/O and compute are delegated to tokio, cpal, and crossbeam.
+The Rust backend runs on the main thread (tao event loop) and coordinates audio capture, ONNX inference, IPC with the panel, and filter state. It does not use async/await for the main app loop; I/O and compute are delegated to tokio, cpal, and crossbeam.
 
 ---
 
@@ -8,7 +8,7 @@ The Rust backend runs on the main thread (winit event loop) and coordinates audi
 
 | Module | Purpose | Key Files |
 |--------|---------|-----------|
-| `main.rs` | Entry point, winit loop, app event dispatch | `main.rs` |
+| `main.rs` | Entry point, tao loop, app event dispatch | `main.rs` |
 | `app_state.rs` | Application state machine (11 states) | `app_state.rs` |
 | `events.rs` | Cross-thread event enums (`AppEvent`, `InferenceCmd`) | `events.rs` |
 | `audio/` | Mic capture, ring buffer, output mixing | `capture.rs`, `output.rs`, `buffer.rs`, `denoise.rs` |
@@ -25,7 +25,7 @@ The Rust backend runs on the main thread (winit event loop) and coordinates audi
 
 ## AppEvent Enum (from `events.rs`)
 
-All cross-thread messages funnel through the winit main event loop:
+All cross-thread messages funnel through the tao main event loop:
 
 | Variant | Payload | Source | Purpose |
 |---------|---------|--------|---------|
@@ -115,7 +115,7 @@ The app uses **no async/await** on the main thread; I/O and compute are delegate
 
 | Thread / Runtime | Role | Management |
 |------------------|------|------------|
-| **winit main** | Event loop, state transitions, UI updates | Single-threaded, event-driven |
+| **tao main** | Event loop, state transitions, UI updates | Single-threaded, event-driven |
 | **tokio runtime** | Model downloads, HTTP requests | Spawned once, `tokio::spawn()` tasks |
 | **cpal capture** | Microphone stream (separate thread) | `cpal::Stream` backend-specific |
 | **cpal output** | Ring buffer drain (separate thread) | `cpal::Stream` backend-specific |
@@ -124,7 +124,7 @@ The app uses **no async/await** on the main thread; I/O and compute are delegate
 
 ### Cross-Thread Sync
 
-- `AppEvent` → `main.rs` via custom event loop (winit-compatible)
+- `AppEvent` → `main.rs` via custom event loop (tao-compatible)
 - `InferenceCmd` → inference task via crossbeam `Sender<InferenceCmd>`
 - Audio samples → inference task via crossbeam queue
 - Filter stats → `AppEvent::FilterStats` → main → panel

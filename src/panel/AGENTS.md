@@ -105,44 +105,30 @@ Events are serialized with an `event` tag field:
 
 ---
 
-## JavaScript Escape Rules (to_js_call)
+## JavaScript Serialisation (to_js_call)
 
-The `PanelEvent::to_js_call()` method in `src/panel/ipc.rs` wraps the JSON event inside a JavaScript function call. **Escaping order matters.**
+The `PanelEvent::to_js_call()` method in `src/panel/ipc.rs` wraps the JSON event inside a JavaScript function call using **serde double-encoding** — the event is serialised to JSON, then that JSON string is itself JSON-encoded to produce a valid JS string literal.
 
 ```rust
 pub fn to_js_call(&self) -> anyhow::Result<String> {
-    let json = serde_json::to_string(self)?;
-    // Escape backslashes FIRST, then double-quotes
-    let escaped = json.replace('\\', "\\\\").replace('"', "\\\"");
-    Ok(format!("window.__voce_update(\"{}\")", escaped))
+    let payload = serde_json::to_string(self)?;            // inner JSON
+    Ok(format!("window.__voce_update({})", serde_json::to_string(&payload)?)) // valid JS literal
 }
 ```
 
-**Why the order?**
-1. If we escape quotes first, then backslashes, we'd double-escape the backslashes we just added.
-2. Escape backslashes first (so `\` → `\\`), then quotes (so `"` → `\"`), so the final JSON is safe inside a JavaScript string literal.
+**Why double-encoding?**
+`serde_json::to_string(&string)` produces a properly-escaped JSON string literal, correctly handling all Unicode escapes including U+2028/U+2029 line separators that would break a naively-escaped JS string. The resulting JS call passes a single string argument that the panel parses with `JSON.parse`.
 
 **Example:**
 
 ```rust
 PanelEvent::StateChanged { state: "FILTERING" }
-// Serialized JSON:
-// {"event":"state_changed","state":"FILTERING"}
-// After escape:
-// {"event":"state_changed","state":"FILTERING"} (no special chars)
-// Final JS call:
-// window.__voce_update("{"event":"state_changed","state":"FILTERING"}")
-
-PanelEvent::FilterStats { similarity: 0.92, is_passing: true }
-// Serialized JSON:
-// {"event":"filter_stats","similarity":0.92,"is_passing":true}
-// After escape (no backslashes or quotes):
-// (same)
-// Final JS call:
-// window.__voce_update("{"event":"filter_stats","similarity":0.92,"is_passing":true}")
+// Inner JSON:  {"event":"state_changed","state":"FILTERING"}
+// Outer (as JS literal): "\"{ \\\"event\\\":\\\"state_changed\\\",...}\""
+// Final JS call: window.__voce_update("{\"event\":\"state_changed\",\"state\":\"FILTERING\"}")
 ```
 
-If a `reason` field ever contains user input (e.g., an error message), ensure it's JSON-safe before serialization.
+The panel JS receives a string and calls `JSON.parse(jsonStr)` to reconstruct the event object.
 
 ---
 
