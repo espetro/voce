@@ -1,0 +1,5 @@
+[tools]
+python = "3.12"
+pnpm = "11"
+just = "1"
+# Rust is managed by rustup — do not add here

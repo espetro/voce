@@ -1,0 +1,130 @@
+set working-directory := ".."
+
+# ── Evaluation Harness ─────────────────────────────────────────────────────
+# Recipes use `uv run --project eval/` for Python execution and run from repo root.
+# See eval/scripts/ for Python implementations.
+
+@default:
+    just --list
+
+# Create venv, install Python deps, download LibriSpeech, generate fixtures,
+# and build the release binary.
+setup:
+    uv run --project eval python eval/scripts/download_samples.py
+    uv run --project eval python eval/scripts/make_fixtures.py
+    cargo build --release
+
+# Run evaluation against the release binary using the threshold from
+# ~/.voce/config.json (or the default 0.75 if no config exists).
+run:
+    uv run --project eval python eval/scripts/evaluate.py --binary target/release/voce
+
+# Same as run but with RUST_LOG=voce=debug so the binary's tracing
+# output is visible on stderr alongside the Python report.
+run-debug:
+    RUST_LOG=voce=debug uv run --project eval python eval/scripts/evaluate.py --binary target/release/voce
+
+# Sweep the cosine similarity threshold from 0.60 to 0.90 in 0.05 steps.
+# Temporarily patches ~/.voce/config.json; restores it afterwards.
+threshold:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "Threshold sweep: 0.60 → 0.90 (step 0.05)"
+    echo "────────────────────────────────────────"
+    orig=$(cat ~/.voce/config.json 2>/dev/null || echo '{"threshold":0.75,"vote_window":3}')
+    for t in 0.60 0.65 0.70 0.75 0.80 0.85 0.90; do
+        printf '{"threshold":%s,"vote_window":3}\n' "$t" > ~/.voce/config.json
+        echo ""
+        echo "=== threshold=$t ==="
+        uv run --project eval python eval/scripts/evaluate.py --binary target/release/voce || true
+    done
+    printf '%s\n' "$orig" > ~/.voce/config.json
+    echo ""
+    echo "Config restored."
+
+# Download AliMeeting data, build audio test fixtures, and build binary.
+alimeeting-setup:
+    uv run --project eval python eval/scripts/download_alimeeting.py
+    uv run --project eval python eval/scripts/make_audio_tests.py
+    cargo build --release
+
+# Run AliMeeting audio eval against the release binary.
+alimeeting-run:
+    uv run --project eval python eval/scripts/eval_audio.py --binary target/release/voce
+
+# Sweep cosine similarity threshold 0.50→0.95 for AliMeeting audio eval.
+# Shows similarity statistics at each step to find the sweet spot.
+alimeeting-sweep:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "AliMeeting threshold sweep: 0.50 → 0.95 (step 0.05)"
+    echo "──────────────────────────────────────────────────"
+    orig=$(cat ~/.voce/config.json 2>/dev/null || echo '{"threshold":0.75,"vote_window":3}')
+    for t in 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95; do
+        printf '{"threshold":%s,"vote_window":3}\n' "$t" > ~/.voce/config.json
+        echo ""
+        echo "=== threshold=$t ==="
+        uv run --project eval python eval/scripts/eval_audio.py --binary target/release/voce || true
+    done
+    printf '%s\n' "$orig" > ~/.voce/config.json
+    echo ""
+    echo "Config restored."
+
+# Remove generated AliMeeting fixtures (keep downloaded data).
+alimeeting-clean:
+    #!/usr/bin/env bash
+    echo "Removing generated fixtures (keeping downloaded data)..."
+    rm -f eval/fixtures/mixed_*.wav eval/fixtures/mixed_*.gt.jsonl || true
+    echo "Fixtures cleaned."
+
+# Generate MSC fixtures and build the release binary.
+# Override MSC_DIR if the dataset is in a non-default location.
+msc-setup MSC_DIR="~/Downloads/Multi-stream Spontaneous Conversation Training Dataset":
+    uv run --project eval python eval/scripts/make_msc_tests.py --msc-dir "{{MSC_DIR}}"
+    cargo build --release
+
+# Run MSC audio eval at the threshold in ~/.voce/config.json.
+msc-run:
+    uv run --project eval python eval/scripts/eval_audio.py --binary target/release/voce --fixtures-dir eval/fixtures/msc
+
+# Sweep cosine similarity threshold 0.50→0.95 for MSC eval.
+msc-sweep:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "MSC threshold sweep: 0.50 → 0.95 (step 0.05)"
+    echo "──────────────────────────────────────────"
+    orig=$(cat ~/.voce/config.json 2>/dev/null || echo '{"threshold":0.65,"vote_window":3}')
+    for t in 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95; do
+        printf '{"threshold":%s,"vote_window":3}\n' "$t" > ~/.voce/config.json
+        echo ""
+        echo "=== threshold=$t ==="
+        uv run --project eval python eval/scripts/eval_audio.py --binary target/release/voce --fixtures-dir eval/fixtures/msc || true
+    done
+    printf '%s\n' "$orig" > ~/.voce/config.json
+    echo ""
+    echo "Config restored."
+
+# Remove generated MSC fixtures (keep nothing — dataset is external).
+msc-clean:
+    rm -rf eval/fixtures/msc
+    echo "MSC fixtures removed."
+
+# Validate TASK-6 AC#1 and AC#2 with your own recordings.
+# Usage: just eval::validate-ac ENROLL1 OTHER [ENROLL2]
+validate-ac ENROLL1 OTHER ENROLL2="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    ENROLL1="{{ENROLL1}}"
+    OTHER="{{OTHER}}"
+    ENROLL2="{{ENROLL2}}"
+
+    if [ -z "$ENROLL1" ] || [ -z "$OTHER" ]; then
+        echo "Usage: just eval::validate-ac ENROLL1 OTHER [ENROLL2]"
+        exit 1
+    fi
+
+    if [ -n "$ENROLL2" ]; then
+        eval/validate-ac.sh "$ENROLL1" "$ENROLL2" "$OTHER"
+    else
+        eval/validate-ac.sh "$ENROLL1" "$OTHER"
+    fi

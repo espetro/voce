@@ -1,0 +1,44 @@
+# ── VoceAudio.driver (macOS HAL plugin) ─────────────────────────────────
+# Recipes build a universal (arm64e + x86_64) dylib bundle.
+# Installs to ~/Library/Audio/Plug-Ins/HAL/ and target/release/ for Rust embedding.
+# All recipes run from the audio-driver directory.
+
+set working-directory := "."
+
+DRIVER_NAME := "VoceAudio"
+BUNDLE := DRIVER_NAME + ".driver"
+HAL_DIR := env_var('HOME') + "/Library/Audio/Plug-Ins/HAL"
+RUST_OUT := "../target/release/" + BUNDLE
+MACOS_MIN := "12.0"
+CFLAGS := "-std=c11 -O2 -Wall -Wextra -mmacosx-version-min=" + MACOS_MIN + " -arch arm64e -arch x86_64 -framework CoreAudio -framework Foundation"
+
+@default:
+    just --list
+
+# Build the .driver bundle
+build:
+    mkdir -p {{BUNDLE}}/Contents/MacOS
+    cp Info.plist {{BUNDLE}}/Contents/
+    clang {{CFLAGS}} -dynamiclib -install_name "@rpath/{{DRIVER_NAME}}" -o {{BUNDLE}}/Contents/MacOS/{{DRIVER_NAME}} VoceAudio.c
+    echo "Built: {{BUNDLE}}/Contents/MacOS/{{DRIVER_NAME}}"
+
+# Copy to ~/Library/Audio/Plug-Ins/HAL/ (no admin required)
+install: build
+    mkdir -p "{{HAL_DIR}}"
+    rm -rf "{{HAL_DIR}}/{{BUNDLE}}"
+    cp -R {{BUNDLE}} "{{HAL_DIR}}/{{BUNDLE}}"
+    echo "Installed: {{HAL_DIR}}/{{BUNDLE}}"
+    mkdir -p "{{RUST_OUT}}"
+    cp -R {{BUNDLE}}/. "{{RUST_OUT}}/"
+    echo "Copied to: {{RUST_OUT}}"
+
+# Install and ask CoreAudio to reload drivers
+reload: install
+    launchctl kickstart -k system/com.apple.audio.coreaudiod
+    sleep 1.5
+    echo "Done. 'Voce Microphone' should appear in System Settings → Sound."
+
+# Remove build artifacts
+clean:
+    rm -rf {{BUNDLE}}
+    echo "Cleaned."
