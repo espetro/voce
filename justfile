@@ -88,3 +88,11 @@ build-all: build-panel build-rust-release
 
 release *FLAGS:
     ./scripts/release.sh {{FLAGS}}
+
+# ── Quality gates ────────────────────────────────────────────────────────────
+
+check:
+    cargo fmt --check
+    cargo clippy --all-targets -- -D warnings
+    cd assets/panel && pnpm exec tsc --noEmit
+    cargo test
