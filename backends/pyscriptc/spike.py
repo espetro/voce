@@ -22,6 +22,12 @@ MAX_ENROLL_WINDOWS: int = 3
 DEFAULT_THRESHOLD: float = 0.75
 DEFAULT_VOTE_WINDOW: int = 3
 TWO_PI: float = 6.283185307179586
+VOCE_OK: int = 0
+RESULT_CELLS: int = 4
+NATIVE_HOP_SAMPLES: int = 24000
+MODELS_DIR: str = "models"
+NATIVE_BACKEND: str = "native"
+MOCK_BACKEND: str = "mock"
 
 
 class Config:
@@ -32,6 +38,7 @@ class Config:
         threshold: float,
         vote_window: int,
         repeat: int,
+        backend: str,
         error: str,
     ) -> None:
         self.input_path: str = input_path
@@ -39,6 +46,7 @@ class Config:
         self.threshold: float = threshold
         self.vote_window: int = vote_window
         self.repeat: int = repeat
+        self.backend: str = backend
         self.error: str = error
 
 
@@ -136,9 +144,129 @@ class MockNativeAdapter:
         return dot
 
 
+class WindowScore:
+    """One native VoceWindowResult expanded into typed Python fields."""
+
+    def __init__(
+        self,
+        runtime_ms: float,
+        similarity: float,
+        speech_probability: float,
+        decision: int,
+    ) -> None:
+        self.runtime_ms: float = runtime_ms
+        self.similarity: float = similarity
+        self.speech_probability: float = speech_probability
+        self.decision: int = decision
+
+
+class VoceNativeAdapter:
+    """Typed adapter over the real voce_native C ABI version 1.
+
+    One instance wraps exactly one caller-owned VoceEngine handle. Every
+    variable-size output follows the ABI query protocol: NULL query for
+    required capacity, caller-owned pyscriptc list of that capacity, then the
+    real call. The C thunks only borrow the list memory for the call.
+    """
+
+    def __init__(
+        self, engine: voce_native.Engine, threshold: float, vote_window: int
+    ) -> None:
+        self.engine: voce_native.Engine = engine
+        self.vote_window: int = vote_window
+        self.status: int = VOCE_OK
+        self.process_status: int = VOCE_OK
+        self.status = voce_native.load_models(self.engine, MODELS_DIR)
+        if self.status == VOCE_OK:
+            self.status = voce_native.set_threshold(self.engine, threshold)
+        if self.status == VOCE_OK:
+            self.status = voce_native.reset_enrollment(self.engine)
+
+    def reset(self) -> int:
+        return voce_native.reset_enrollment(self.engine)
+
+    def enroll(self, windows: list[list[float]]) -> int:
+        status: int = self.reset()
+        index: int = 0
+        while status == VOCE_OK and index < len(windows):
+            status = voce_native.enroll_pcm(self.engine, windows[index])
+            index += 1
+        return status
+
+    def dimension(self) -> int:
+        return voce_native.embedding_dim(self.engine)
+
+    def finish_enrollment(self) -> list[float]:
+        capacity: int = voce_native.finish_enrollment_capacity(self.engine)
+        if capacity <= 0:
+            return []
+        embedding: list[float] = []
+        index: int = 0
+        while index < capacity:
+            embedding.append(0.0)
+            index += 1
+        status: int = voce_native.finish_enrollment(self.engine, embedding)
+        if status != VOCE_OK:
+            return []
+        return embedding
+
+    def score_window(self, window: list[float]) -> WindowScore:
+        result: list[float] = [0.0, 0.0, 0.0, 0.0]
+        status: int = voce_native.score_window(self.engine, window, result)
+        if status != VOCE_OK:
+            return WindowScore(0.0, 0.0, 0.0, 0)
+        return WindowScore(result[0], result[1], result[2], int(result[3]))
+
+    def process_pcm(self, pcm: list[float]) -> list[WindowScore]:
+        total: int = voce_native.process_pcm_capacity(self.engine, len(pcm))
+        if total < 0:
+            self.process_status = total
+            return []
+        cells: int = total * RESULT_CELLS
+        results: list[float] = []
+        index: int = 0
+        while index < cells:
+            results.append(0.0)
+            index += 1
+        status: int = voce_native.process_pcm(self.engine, pcm, results)
+        self.process_status = status
+        if status < 0:
+            return []
+        scores: list[WindowScore] = []
+        index = 0
+        while index < total:
+            cell: int = index * RESULT_CELLS
+            scores.append(
+                WindowScore(
+                    results[cell],
+                    results[cell + 1],
+                    results[cell + 2],
+                    int(results[cell + 3]),
+                )
+            )
+            index += 1
+        return scores
+
+    def serialize_profile(self) -> str:
+        return voce_native.serialize_profile_json(self.engine)
+
+    def deserialize_profile(self, text: str) -> int:
+        return voce_native.deserialize_profile_json(self.engine, text)
+
+    def profile_json_capacity(self) -> int:
+        return voce_native.profile_json_capacity(self.engine)
+
+
 def make_adapter() -> MockNativeAdapter:
-    """Single swap point for the real voce_native FFI adapter."""
+    """Single swap point for the deterministic mock orchestration."""
     return MockNativeAdapter(EMBEDDING_DIM)
+
+
+def make_native_adapter(
+    engine: voce_native.Engine, threshold: float, vote_window: int
+) -> VoceNativeAdapter:
+    """Wrap a caller-owned handle for the --backend native path."""
+    return VoceNativeAdapter(engine, threshold, vote_window)
 
 
 def bool_text(value: bool) -> str:
@@ -391,19 +519,215 @@ def run_once(
     return RunResult(joined, profile.to_json(), decisions, total_ms)
 
 
+def native_window_json(index: int, score: WindowScore, threshold: float) -> str:
+    passed: bool = score.similarity >= threshold
+    gated: bool = score.decision == 1
+    return (
+        '{"index":'
+        + str(index)
+        + ',"similarity":'
+        + str(score.similarity)
+        + ',"speech_probability":'
+        + str(score.speech_probability)
+        + ',"decision":'
+        + str(score.decision)
+        + ',"pass":'
+        + bool_text(passed)
+        + ',"gated":'
+        + bool_text(gated)
+        + ',"runtime_ms":'
+        + str(score.runtime_ms)
+        + "}"
+    )
+
+
+def native_scores_equal(a: list[WindowScore], b: list[WindowScore]) -> bool:
+    if len(a) != len(b):
+        return False
+    index: int = 0
+    while index < len(a):
+        if a[index].similarity != b[index].similarity:
+            return False
+        if a[index].decision != b[index].decision:
+            return False
+        index += 1
+    return True
+
+
+def native_decisions(scores: list[WindowScore]) -> str:
+    decisions: str = ""
+    for score in scores:
+        decisions += "1" if score.decision == 1 else "0"
+    return decisions
+
+
+def native_passed_count(scores: list[WindowScore]) -> int:
+    count: int = 0
+    for score in scores:
+        if score.decision == 1:
+            count += 1
+    return count
+
+
+def join_json(items: list[str]) -> str:
+    joined: str = ""
+    for item in items:
+        if joined != "":
+            joined += ","
+        joined += item
+    return joined
+
+
+def run_native(config: Config, pcm: list[float], enroll_pcm: list[float]) -> None:
+    """Run the same WAV/PCM fixture through the real native ABI adapter."""
+    rss_start: int = voce_native.rss_kb()
+    started: float = time.perf_counter()
+    engine: voce_native.Engine = voce_native.create()
+    restored_engine: voce_native.Engine = voce_native.create()
+    adapter: VoceNativeAdapter = make_native_adapter(
+        engine, config.threshold, config.vote_window
+    )
+    status: int = adapter.status
+    enrollment_status: int = status
+    if status == VOCE_OK:
+        enrollment_status = adapter.enroll([enroll_pcm])
+    dim: int = 0
+    embedding: list[float] = []
+    profile: str = ""
+    profile_capacity: int = 0
+    if enrollment_status == VOCE_OK:
+        dim = adapter.dimension()
+        embedding = adapter.finish_enrollment()
+        profile = adapter.serialize_profile()
+        profile_capacity = adapter.profile_json_capacity()
+    restored: VoceNativeAdapter = make_native_adapter(
+        restored_engine, config.threshold, config.vote_window
+    )
+    restore_status: int = VOCE_OK
+    if profile != "":
+        restore_status = restored.deserialize_profile(profile)
+    scores: list[WindowScore] = []
+    restored_scores: list[WindowScore] = []
+    repeat_scores: list[WindowScore] = []
+    if enrollment_status == VOCE_OK:
+        scores = adapter.process_pcm(pcm)
+        repeat_scores = adapter.process_pcm(pcm)
+        if restore_status == VOCE_OK:
+            restored_scores = restored.process_pcm(pcm)
+    elapsed_ms: float = (time.perf_counter() - started) * 1000.0
+    roundtrip: bool = (
+        restore_status == VOCE_OK and native_scores_equal(scores, restored_scores)
+    )
+    repeat: int = config.repeat
+    if repeat < 1:
+        repeat = 1
+    deterministic: bool = native_scores_equal(scores, repeat_scores)
+    run: int = 2
+    while run < repeat:
+        again: list[WindowScore] = adapter.process_pcm(pcm)
+        if not native_scores_equal(scores, again):
+            deterministic = False
+        run += 1
+    windows: list[str] = []
+    index: int = 0
+    while index < len(scores):
+        windows.append(native_window_json(index, scores[index], config.threshold))
+        index += 1
+    runtime_ms: float = 0.0
+    for score in scores:
+        runtime_ms += score.runtime_ms
+    decisions: str = native_decisions(scores)
+    profile_json: str = profile
+    if profile_json == "":
+        profile_json = "{}"
+    artifact_bytes: int = 0
+    try:
+        artifact_bytes = os.stat(sys.argv[0]).st_size
+    except OSError:
+        artifact_bytes = 0
+    print(
+        '{"schema":"voce-pyscriptc-native/1","backend":"native","abi_version":'
+        + str(voce_native.abi_version())
+        + ',"open_count":'
+        + str(voce_native.open_count())
+        + ',"status":'
+        + str(status)
+        + ',"enrollment_status":'
+        + str(enrollment_status)
+        + ',"restore_status":'
+        + str(restore_status)
+        + ',"process_status":'
+        + str(adapter.process_status)
+        + ',"input":'
+        + json.dumps(config.input_path)
+        + ',"sample_rate":'
+        + str(SAMPLE_RATE)
+        + ',"window_samples":'
+        + str(WINDOW_SAMPLES)
+        + ',"hop_samples":'
+        + str(NATIVE_HOP_SAMPLES)
+        + ',"embedding_dim":'
+        + str(dim)
+        + ',"profile_dimension":'
+        + str(len(embedding))
+        + ',"profile_json_capacity":'
+        + str(profile_capacity)
+        + ',"profile_json_bytes":'
+        + str(len(profile))
+        + ',"threshold":'
+        + str(config.threshold)
+        + ',"vote_window":'
+        + str(config.vote_window)
+        + ',"enrollment_samples":'
+        + str(len(enroll_pcm))
+        + ',"window_count":'
+        + str(len(scores))
+        + ',"passed_window_count":'
+        + str(native_passed_count(scores))
+        + ',"profile_round_trip":'
+        + bool_text(roundtrip)
+        + ',"profile":'
+        + profile_json
+        + ',"windows":['
+        + join_json(windows)
+        + '],"runtime_ms_total":'
+        + str(runtime_ms)
+        + ',"wall_ms_total":'
+        + str(elapsed_ms)
+        + ',"rss_start_kb":'
+        + str(rss_start)
+        + ',"rss_end_kb":'
+        + str(voce_native.rss_kb())
+        + ',"rss_peak_kb":'
+        + str(voce_native.peak_rss_kb())
+        + ',"artifact_size_bytes":'
+        + str(artifact_bytes)
+        + ',"repeat":'
+        + str(repeat)
+        + ',"decision_digest":'
+        + json.dumps(decision_digest(decisions))
+        + ',"deterministic":'
+        + bool_text(deterministic)
+        + "}"
+    )
+    voce_native.close(engine)
+    voce_native.close(restored_engine)
+
+
 def parse_args(argv: list[str]) -> Config:
     input_path: str = ""
     enroll_path: str = ""
     threshold: float = DEFAULT_THRESHOLD
     vote_window: int = DEFAULT_VOTE_WINDOW
     repeat: int = 2
+    backend: str = MOCK_BACKEND
     error: str = ""
     i: int = 1
     while i < len(argv):
         arg: str = argv[i]
         if arg == "--help":
-            error = "usage: voce_spike --input FILE [--enroll FILE] [--threshold F] [--vote-window N] [--repeat N]"
-            return Config("", "", threshold, vote_window, repeat, error)
+            error = "usage: voce_spike --input FILE [--enroll FILE] [--threshold F] [--vote-window N] [--repeat N] [--backend mock|native]"
+            return Config("", "", threshold, vote_window, repeat, backend, error)
         if i + 1 >= len(argv):
             error = "missing value for " + arg
             break
@@ -418,13 +742,17 @@ def parse_args(argv: list[str]) -> Config:
             vote_window = int(value)
         elif arg == "--repeat":
             repeat = int(value)
+        elif arg == "--backend":
+            backend = value
         else:
             error = "unknown flag " + arg
             break
         i += 2
     if input_path == "" and error == "":
         error = "--input is required"
-    return Config(input_path, enroll_path, threshold, vote_window, repeat, error)
+    if backend != MOCK_BACKEND and backend != NATIVE_BACKEND and error == "":
+        error = "--backend must be mock or native"
+    return Config(input_path, enroll_path, threshold, vote_window, repeat, backend, error)
 
 
 def main() -> None:
@@ -443,6 +771,9 @@ def main() -> None:
     enroll_windows: list[list[float]] = make_windows(enroll_pcm)
     if len(enroll_windows) == 0:
         print("enrollment input must contain at least 48000 samples")
+        return
+    if config.backend == NATIVE_BACKEND:
+        run_native(config, pcm, enroll_pcm)
         return
     adapter: MockNativeAdapter = make_adapter()
     profile: Profile = enroll(adapter, enroll_windows, config.threshold, config.vote_window)

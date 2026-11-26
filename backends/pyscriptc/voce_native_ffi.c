@@ -212,18 +212,20 @@ int64_t ps_ffi_voce_score_window(void *engine, PsSeq *seq, PsSeq *out) {
     return status;
 }
 
-/* process_pcm_capacity(engine, n_samples) -> complete window count. This is
- * the native NULL-data size query, surfaced so Python allocates the exact
- * caller-sized output buffer. */
+/* process_pcm_capacity(engine, n_samples) -> complete window count. The ABI's
+ * NULL-data query applies to variable-size *outputs*, but PCM is an input:
+ * voce_engine_process_pcm rejects NULL PCM for a non-zero sample count. The
+ * window count is therefore derived from the header constants that
+ * MockEngine::window_count() uses, so Python can allocate the exact
+ * caller-sized results list before the real call. */
 int64_t ps_ffi_voce_process_pcm_capacity(void *engine, int64_t n_samples) {
-    int64_t capacity = 0;
-    int64_t total = 0;
-    int64_t status = (int64_t)voce_engine_process_pcm(
-        (VoceEngine *)engine, NULL, n_samples, NULL, &capacity, &total);
-    if (status != VOCE_OK) {
-        return -status;
+    if (engine == NULL) {
+        return VOCE_ERR_NULL_ARGUMENT;
     }
-    return total;
+    if (n_samples < VOCE_WINDOW_SAMPLES) {
+        return 0;
+    }
+    return 1 + (n_samples - VOCE_WINDOW_SAMPLES) / VOCE_HOP_SAMPLES;
 }
 
 /* process_pcm(engine, pcm, out) -> status. `out` holds 4 f64 cells per window.

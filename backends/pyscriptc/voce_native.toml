@@ -111,7 +111,7 @@ borrows = ["engine"]
 [[fn]]
 name = "process_pcm_capacity"
 py = "(engine: Engine, n_samples: int) -> int"
-c_symbol = "voce_engine_process_pcm (NULL data size query)"
+c_symbol = "VOCE_WINDOW_SAMPLES / VOCE_HOP_SAMPLES window count"
 abi = "ps_ffi_voce_process_pcm_capacity"
 borrows = ["engine"]
 
