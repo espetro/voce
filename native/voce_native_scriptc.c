@@ -30,7 +30,8 @@
  *   7 EMBEDDING_DIM    8 bytes -> i64 dimension
  *   8 SCORE_WINDOW     [f32 pcm samples][24-byte result]; result is written
  *                      into the trailing 24 bytes (double, f32, f32, i32)
- *   9 PROCESS_QUERY    8-byte i64 sample count -> i64 complete window count
+ *   9 PROCESS_QUERY    [8-byte i64 prefix][f32 pcm samples]; prefix receives
+ *                      the complete window count; out_results stays NULL
  *  10 PROCESS_PCM      [capacity i64][f32 pcm][24-byte result * capacity];
  *                      prefix receives the number of results written
  * 11 SERIALIZE_QUERY  8-byte zero prefix -> required JSON bytes incl. NUL
@@ -179,13 +180,14 @@ int32_t vws_call(int32_t session, uint32_t op, uint8_t *frame, int64_t frame_len
         }
 
         case VWS_PROCESS_QUERY: {
-            if (frame == NULL || frame_len < 8) return VOCE_ERR_INVALID_ARGUMENT;
-            int64_t samples = vws_load_i64(frame);
-            if (samples < 0) return VOCE_ERR_INVALID_ARGUMENT;
+            if (frame == NULL || frame_len < 8 ||
+                (frame_len - 8) % 4 != 0) return VOCE_ERR_INVALID_ARGUMENT;
+            int64_t samples = (frame_len - 8) / 4;
             int64_t capacity = 0;
             int64_t total = 0;
             int32_t status = voce_engine_process_pcm(
-                engine, NULL, samples, NULL, &capacity, &total);
+                engine, (const float *)(frame + 8), samples, NULL,
+                &capacity, &total);
             vws_store_i64(frame, total);
             return status;
         }

@@ -68,3 +68,4 @@ build/
 backends/scriptc/ffi/*.o
 backends/scriptc/ffi/*.a
 backends/scriptc/probe-*
+backends/scriptc/voce-scriptc-native

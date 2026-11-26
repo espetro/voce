@@ -40,6 +40,35 @@ export interface Profile {
   vote_window: number;
 }
 
+/** A single window score as returned by VoceWindowResult in voce_native.h. */
+export interface VoceNativeWindowScore {
+  runtime_ms: number;
+  similarity: number;
+  speech_probability: number;
+  /** VOCE_GATE_PASS (1) or VOCE_GATE_BLOCK (0). */
+  decision: number;
+}
+
+/**
+ * Full stateful ABI seam. It extends NativeShim so existing Engine callers can
+ * swap a mock shim for the native adapter without changing their type, while
+ * the native CLI drives the richer lifecycle and scoring methods directly.
+ */
+export interface VoceNativeAdapter extends NativeShim {
+  /** ABI embedding_dim query; the property is the value cached at construction. */
+  queryEmbeddingDim(): number;
+  loadModels(modelsDir: string): void;
+  setThreshold(threshold: number): void;
+  resetEnrollment(): void;
+  enrollPcm(pcm: Float32Array): void;
+  finishEnrollment(): Float32Array;
+  scoreWindow(pcm: Float32Array): VoceNativeWindowScore;
+  processPcm(pcm: Float32Array): VoceNativeWindowScore[];
+  serializeProfileJson(): string;
+  deserializeProfileJson(json: string): void;
+  close(): void;
+}
+
 /** Narrow adapter contract mirroring intended voce_native semantics. */
 export interface NativeShim {
   /** Compute a deterministic embedding for a PCM window. */
