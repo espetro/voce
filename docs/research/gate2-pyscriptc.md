@@ -6,7 +6,7 @@ Date: 2026-11-26. Lane: G2P. Branch: `voce-spike-pyscriptc-backend`. Scope: stan
 
 VERDICT: fail
 
-The pyscriptc CLI drives the frozen `voce_native` ABI v1 staticlib against the standardized 100 MB ONNX model. Decisions, similarities, and recomputed native FNV digests match the Rust release probe exactly on all five standardized WAVs, runs are deterministic, the artifact is 74,273,784 B with no `libonnxruntime.so` dependency, and mean per-window runtime is below 1 s. Two criteria fail: target recall on the standardized fixture is below the 85% floor for both backends (76.9% raw, 84.6% vote-gated), and the pyscriptc/native mean-window ratio is 1.271x against a 1.25x budget. Recall is a fidelity failure of the shared real backend on this fixture/model pair, and the ratio is a debug-staticlib cost, not a pyscriptc-vs-native divergence.
+The pyscriptc CLI drives the frozen `voce_native` ABI v1 staticlib against the standardized 100 MB ONNX model. Decisions, similarities, and recomputed native FNV digests match the Rust release probe exactly on all five standardized WAVs, runs are deterministic, the artifact is 74,273,784 B before the incremental rebuild and 75,865,744 B after it, with no `libonnxruntime.so` dependency, and mean per-window runtime is below 1 s. Two criteria fail: target recall on the standardized fixture is below the 85% floor for both backends (76.9% raw, 84.6% vote-gated), and the pyscriptc/native mean-window ratio is 1.271x against a 1.25x budget. Recall is a fidelity failure of the shared real backend on this fixture/model pair, and the ratio is a debug-staticlib cost, not a pyscriptc-vs-native divergence.
 
 ## Standardized inputs
 
@@ -75,7 +75,7 @@ stat -c '%n %s' backends/pyscriptc/voce_spike
 | --- | --- |
 | Native release build, warm cargo cache (`cargo build --release` under lock) | 60,592 ms |
 | Incremental managed rebuild (`sh backends/pyscriptc/build.sh --timings --debug=fences`, no clean) | 215,731 ms wall including lock wait behind the running fixture sweep; warm cargo dev profile finished in 0.23 s and pyscriptc total was 9,005.6 ms (parse 25.1, lower 871.2, validate 8.0, emit_llvm 897.3, cc_compile 1,304.5, cc_link 5,644.2); capability 50 native / 0 fenced |
-| pyscriptc artifact `backends/pyscriptc/voce_spike` | 74,273,784 B |
+| pyscriptc artifact `backends/pyscriptc/voce_spike` | 74,273,784 B before incremental rebuild; 75,865,744 B after (both below 150 MB) |
 | Native debug staticlib staged as `backends/pyscriptc/lib/libvoce_native.a` | 195,262,032 B |
 | Native release probe / release staticlib | 26,523,904 B / 122,129,422 B |
 | Cold rebuild | Not measured: budget prioritized the standardized fixture measurements |
@@ -130,7 +130,7 @@ Decision parity is bit-for-bit: per-window similarity f32 patterns, speech proba
 | 5 | Self-contained wrt ONNX Runtime | pass | `ldd backends/pyscriptc/voce_spike` lists only vdso, libstdc++, libm, libgcc_s, libc, ld-linux; no `libonnxruntime.so` |
 | 6 | Mean < 1 s/window and <= 1.25x native | fail | 986.63 ms vs native 776.53 ms, ratio 1.271x |
 | 7 | Peak RSS <= 1.25x native or native +128 MiB | pass | pyscriptc 584.9 MiB vs native 445.5-478.1 MiB; native max +128 MiB = 606.1 MiB |
-| 8 | Artifact < 150 MB | pass | 74,273,784 B (~70.8 MiB) |
+| 8 | Artifact < 150 MB | pass | 74,273,784 B (~70.8 MiB) initially; 75,865,744 B (~72.3 MiB) after incremental rebuild |
 
 ## Fences and constraints
 
