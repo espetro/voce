@@ -149,3 +149,19 @@ No native source changed in this lane, so native tests were not rerun; the last 
 ## Follow-ups
 
 The recall shortfall is shared by both backends on this model/fixture pair. The next step is model/threshold work in the native lane, not a pyscriptc orchestration change; pyscriptc is useful as a typed verification harness across the frozen ABI but does not alter inference fidelity or latency.
+
+## Hardening amendment (2026-11-26, criteria v2)
+
+This amendment supersedes the v1 verdict above. Under the user-approved criteria v2, recall/FPR at 0.75 is informational Gate 3 model quality, RSS is used for backend selection rather than as a hard block, and the mean-window runtime cap is relaxed to 1.5x for debug/staticlib spike measurements with release-mode re-measurement required. The backend-correctness hard gates are unchanged. Amended verdict: pass with constraints, with release measurements and normalized vote counting recorded below.
+
+### Vote-window counting: why the lanes disagreed
+
+The 39 versus 78 target-window counts and the 0% versus 5.128% vote FPRs came from different measurement harness choices, not from different backend decisions. Both probes emit raw ABI decisions and neither applies the app-level vote gate. The earlier pyscriptc helper applied majority-of-3 to raw decision bits with no fail-open warm start, giving 33/39 vote target passes from 30/39 raw passes and zero vote passes on the other files. The scriptc lane applied the canonical `SlidingVoteGate` semantics from `src/filter/gate.rs` to similarities: fail-open, mute only when all three most recent similarities are below threshold, with a fresh history for each input file. On the target file the similarity stream has no three consecutive misses, so every window passes the fail-open gate (39/39 per repeat, 78/78 pooled over two repeats). On each other file the first two windows pass while the history fills, giving 2/39 per file and 6/117 per repeat, or 12/234 pooled over two repeats.
+
+Vote-gated FPR can exceed raw FPR because the two gates answer different questions. The raw ABI decision passes a window when the frame is silence or similarity is at least 0.75; the app vote gate compares similarity directly and starts in pass state, so the first two windows of a low-similarity file pass before a full fail history exists. Conversely, raw silence can pass while the vote gate blocks it because its similarity is zero. Applying the canonical gate to the stored window fields reproduces scriptc's numbers on both native and pyscriptc outputs with zero parity mismatches, confirming the discrepancy was in the harness.
+
+Window counting is now normalized across lanes. One 60 s file produces exactly 39 windows at a 1.5 s hop. Each file/repeat pair is an independent observation: the vote history resets at the start of every file and every repeat, each 3 s window is counted exactly once within its observation, and repeats are never chained into one longer stream. Rates are reported per repeat (39 target windows, 117 other windows) and pooled by summing numerator and denominator over two repeats (78 target windows, 234 other windows), so the rate does not depend on repeat count. The scriptc machine summary mixed the two conventions: its target 78/78 was pooled over two repeats while its other 6/117 was a single-repeat count; its underlying evidence rows actually contain 12/234 over two repeats. The earlier pyscriptc summary used one repeat only for recall/FPR although it collected two invocations for determinism. `gate2_normalize.py` and `gate2_aggregate.py` now implement the canonical gate on both outputs, expose per-repeat and pooled counts, and fail if the expected number of repeats is missing.
+
+### Release-mode measurements
+
+Pending release sweep completion.
