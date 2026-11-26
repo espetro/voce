@@ -28,6 +28,7 @@ NATIVE_HOP_SAMPLES: int = 24000
 MODELS_DIR: str = "models"
 NATIVE_BACKEND: str = "native"
 MOCK_BACKEND: str = "mock"
+REAL_BACKEND: str = "real"
 
 
 class Config:
@@ -39,6 +40,7 @@ class Config:
         vote_window: int,
         repeat: int,
         backend: str,
+        models_path: str,
         error: str,
     ) -> None:
         self.input_path: str = input_path
@@ -47,6 +49,7 @@ class Config:
         self.vote_window: int = vote_window
         self.repeat: int = repeat
         self.backend: str = backend
+        self.models_path: str = models_path
         self.error: str = error
 
 
@@ -170,14 +173,22 @@ class VoceNativeAdapter:
     """
 
     def __init__(
-        self, engine: voce_native.Engine, threshold: float, vote_window: int
+        self,
+        engine: voce_native.Engine,
+        threshold: float,
+        vote_window: int,
+        models_path: str,
     ) -> None:
         self.engine: voce_native.Engine = engine
         self.vote_window: int = vote_window
+        self.models_path: str = models_path
+        self.model_load_ms: float = 0.0
         self.status: int = VOCE_OK
         self.process_status: int = VOCE_OK
         self.score_status: int = VOCE_OK
-        self.status = voce_native.load_models(self.engine, MODELS_DIR)
+        started: float = time.perf_counter()
+        self.status = voce_native.load_models(self.engine, models_path)
+        self.model_load_ms = (time.perf_counter() - started) * 1000.0
         if self.status == VOCE_OK:
             self.status = voce_native.set_threshold(self.engine, threshold)
         if self.status == VOCE_OK:
@@ -265,10 +276,18 @@ def make_adapter() -> MockNativeAdapter:
 
 
 def make_native_adapter(
-    engine: voce_native.Engine, threshold: float, vote_window: int
+    engine: voce_native.Engine,
+    threshold: float,
+    vote_window: int,
+    models_path: str,
 ) -> VoceNativeAdapter:
-    """Wrap a caller-owned handle for the --backend native path."""
-    return VoceNativeAdapter(engine, threshold, vote_window)
+    """Wrap a caller-owned handle for the native ABI paths.
+
+    The path is the unchanged v1 ``voce_engine_load_models`` selector:
+    ``models`` keeps the deterministic mock, any other file or directory
+    selects the real ONNX backend.
+    """
+    return VoceNativeAdapter(engine, threshold, vote_window, models_path)
 
 
 def bool_text(value: bool) -> str:
@@ -586,8 +605,11 @@ def run_native(config: Config, pcm: list[float], enroll_pcm: list[float]) -> Non
     started: float = time.perf_counter()
     engine: voce_native.Engine = voce_native.create()
     restored_engine: voce_native.Engine = voce_native.create()
+    models_path: str = config.models_path
+    if config.backend != REAL_BACKEND:
+        models_path = MODELS_DIR
     adapter: VoceNativeAdapter = make_native_adapter(
-        engine, config.threshold, config.vote_window
+        engine, config.threshold, config.vote_window, models_path
     )
     status: int = adapter.status
     enrollment_status: int = status
@@ -603,7 +625,7 @@ def run_native(config: Config, pcm: list[float], enroll_pcm: list[float]) -> Non
         profile = adapter.serialize_profile()
         profile_capacity = adapter.profile_json_capacity()
     restored: VoceNativeAdapter = make_native_adapter(
-        restored_engine, config.threshold, config.vote_window
+        restored_engine, config.threshold, config.vote_window, models_path
     )
     restore_status: int = VOCE_OK
     if profile != "":
@@ -660,7 +682,13 @@ def run_native(config: Config, pcm: list[float], enroll_pcm: list[float]) -> Non
     voce_native.close(engine)
     voce_native.close(restored_engine)
     print(
-        '{"schema":"voce-pyscriptc-native/1","backend":"native","abi_version":'
+        '{"schema":"voce-pyscriptc-native/1","backend":'
+        + json.dumps(config.backend)
+        + ',"models_path":'
+        + json.dumps(models_path)
+        + ',"model_load_ms":'
+        + str(adapter.model_load_ms)
+        + ',"abi_version":'
         + str(voce_native.abi_version())
         + ',"open_count":'
         + str(voce_native.open_count())
@@ -743,13 +771,14 @@ def parse_args(argv: list[str]) -> Config:
     vote_window: int = DEFAULT_VOTE_WINDOW
     repeat: int = 2
     backend: str = MOCK_BACKEND
+    models_path: str = ""
     error: str = ""
     i: int = 1
     while i < len(argv):
         arg: str = argv[i]
         if arg == "--help":
-            error = "usage: voce_spike --input FILE [--enroll FILE] [--threshold F] [--vote-window N] [--repeat N] [--backend mock|native]"
-            return Config("", "", threshold, vote_window, repeat, backend, error)
+            error = "usage: voce_spike --input FILE [--enroll FILE] [--threshold F] [--vote-window N] [--repeat N] [--backend mock|native|real] [--models-dir FILE|DIR]"
+            return Config("", "", threshold, vote_window, repeat, backend, models_path, error)
         if i + 1 >= len(argv):
             error = "missing value for " + arg
             break
@@ -766,15 +795,26 @@ def parse_args(argv: list[str]) -> Config:
             repeat = int(value)
         elif arg == "--backend":
             backend = value
+        elif arg == "--models-dir":
+            models_path = value
         else:
             error = "unknown flag " + arg
             break
         i += 2
     if input_path == "" and error == "":
         error = "--input is required"
-    if backend != MOCK_BACKEND and backend != NATIVE_BACKEND and error == "":
-        error = "--backend must be mock or native"
-    return Config(input_path, enroll_path, threshold, vote_window, repeat, backend, error)
+    if (
+        backend != MOCK_BACKEND
+        and backend != NATIVE_BACKEND
+        and backend != REAL_BACKEND
+        and error == ""
+    ):
+        error = "--backend must be mock, native, or real"
+    if backend == REAL_BACKEND and models_path == "" and error == "":
+        error = "--backend real requires --models-dir FILE|DIR"
+    return Config(
+        input_path, enroll_path, threshold, vote_window, repeat, backend, models_path, error
+    )
 
 
 def main() -> None:
@@ -794,7 +834,7 @@ def main() -> None:
     if len(enroll_windows) == 0:
         print("enrollment input must contain at least 48000 samples")
         return
-    if config.backend == NATIVE_BACKEND:
+    if config.backend == NATIVE_BACKEND or config.backend == REAL_BACKEND:
         run_native(config, pcm, enroll_pcm)
         return
     adapter: MockNativeAdapter = make_adapter()
