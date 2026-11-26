@@ -157,7 +157,9 @@ function main(): void {
     const input = getOpt(argv, "--input");
     if (!input) throw new Error("run: --input required");
     const selection = selectBackend(argv);
+    const modelStarted = Date.now();
     const adapter = new VoceNativeAdapter(selection.modelsPath);
+    const modelLoadMs = Date.now() - modelStarted;
     const enroll = getOpt(argv, "--enroll");
     const profile = getOpt(argv, "--profile");
     let profileJson: string | null = null;
@@ -179,7 +181,7 @@ function main(): void {
     adapter.close();
     out = {
       command: "run", backend: selection.backend, shim: adapter.backendName,
-      models_path: selection.modelsPath, input,
+      models_path: selection.modelsPath, input, model_load_ms: modelLoadMs,
       embedding_dim: adapter.embeddingDim, enrolled: true,
       profile_json: profileJson === null ? null : JSON.parse(profileJson),
       profile_out: profileOut,
@@ -202,7 +204,9 @@ function main(): void {
     const selection = selectBackend(argv);
     const runs = [];
     for (let i = 0; i < repeat; i++) {
+      const modelStarted = Date.now();
       const adapter = new VoceNativeAdapter(selection.modelsPath);
+      const modelLoadMs = Date.now() - modelStarted;
       const profileJson = enrollAdapter(
         adapter, enrollFile !== null ? loadInput(enrollFile) : synthPcm(6, 1, 210));
       const target = scoreInput(
@@ -213,6 +217,7 @@ function main(): void {
         otherFile ?? "other");
       adapter.close();
       runs.push({
+        model_load_ms: modelLoadMs,
         profile_json: JSON.parse(profileJson),
         profile_digest: profileJson,
         target_digest: stableWindows(target.windows),
@@ -241,17 +246,22 @@ function main(): void {
     const enroll = getOpt(argv, "--enroll");
     if (!input || !enroll) throw new Error("roundtrip: --input and --enroll required");
     const selection = selectBackend(argv);
+    const modelStarted = Date.now();
     const adapter = new VoceNativeAdapter(selection.modelsPath);
+    const modelLoadMs = Date.now() - modelStarted;
     const json = enrollAdapter(adapter, loadInput(enroll));
     const first = scoreInput(adapter, loadInput(input), "before");
     adapter.close();
+    const restoredStarted = Date.now();
     const restored = new VoceNativeAdapter(selection.modelsPath);
+    const restoredModelLoadMs = Date.now() - restoredStarted;
     restored.deserializeProfileJson(json);
     const second = scoreInput(restored, loadInput(input), "after");
     restored.close();
     out = {
       command: "roundtrip", backend: selection.backend, shim: "voce_native-staticlib",
       models_path: selection.modelsPath, input, enroll,
+      model_load_ms: modelLoadMs, restored_model_load_ms: restoredModelLoadMs,
       profile_bytes: json.length,
       profile_json: JSON.parse(json),
       score_digest_equal:
