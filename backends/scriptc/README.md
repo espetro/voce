@@ -54,3 +54,26 @@ Backend selection uses the unchanged v1 `load_models` path:
 
 `run` and `roundtrip` accept the same `--backend`, `--model` and `--models-dir`
 options. All ABIs, window sizes and profile formats remain v1.
+
+### Gate 2 hardening harness
+
+Build a release staticlib and link the artifact against it with:
+
+```sh
+flock /tmp/tsc.lock sh ffi/build-wrapper.sh --release
+flock /tmp/tsc.lock scriptc build src/cli_native.ts \
+  --ffi ffi/voce_native_scriptc.release.json \
+  -o /tmp/voce-gate2-scriptc-native-release --no-keep-llvm
+```
+
+`gate2_hardening.py` runs the standardized fixture sweep, resets vote state for
+each `(input, repeat)`, and writes per-repeat and combined counts. Every probe
+command is individually wrapped in `/tmp/tsc.lock`.
+
+```sh
+python3 backends/scriptc/gate2_hardening.py \
+  --native-probe native/target/release/voce-native-probe \
+  --scriptc-exe /tmp/voce-gate2-scriptc-native-release \
+  --evidence-dir /tmp/gate2-evidence/hardening \
+  --out /tmp/gate2-evidence/hardening/harness-summary.json
+```
