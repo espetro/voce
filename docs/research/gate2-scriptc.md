@@ -178,15 +178,15 @@ All build and probe commands in this amendment were individually wrapped in `flo
 
 | Metric | scriptc (release) | native probe (release) | Ratio |
 | --- | --- | --- | --- |
-| Mean 3 s window runtime | {{SCRIPT_MEAN_MS}} ms | {{NATIVE_MEAN_MS}} ms | {{RUNTIME_RATIO}}x |
-| Peak RSS | {{SCRIPT_RSS_B}} B | {{NATIVE_RSS_B}} B | {{RSS_RATIO}}x |
-| Artifact size | {{ARTIFACT_B}} B | {{NATIVE_PROBE_B}} B | n/a |
-| Model load | {{SCRIPT_LOAD_MS}} ms mean | {{NATIVE_LOAD_MS}} ms | n/a |
+| Mean 3 s window runtime | not measured ms | not measured ms | not measuredx |
+| Peak RSS | not measured B | not measured B | not measuredx |
+| Artifact size | 31010200 B | 26523904 B | n/a |
+| Model load | not measured ms mean | not measured ms | n/a |
 
-Both runtimes are well under the 1000 ms hard limit and the release ratio is inside the 1.5x cap. RSS remains informational under criteria v2. The scriptc artifact is self-contained with no `libonnxruntime.so` runtime path; it needs only the host libm, libstdc++, libc and libgcc_s already present on the Linux x86-64/glibc target.
+**Measurement blocker:** every release-mode command was individually wrapped in `flock -w 1800 /tmp/tsc.lock`, but an unrelated pyscriptc pytest run and a zed `cargo test` held and queued on that lock for the entire final deadline window. The release native staticlib, native probe and 31,010,200-byte scriptc artifact were produced (build log 44.39 s) and `ldd` confirms no `libonnxruntime.so`, but no release timing, RSS, model-load or repeat-sweep data was produced. No debug numbers were relabeled as release numbers, and no release runtime ratio is claimed. The table above is deliberately left unmeasured. The scriptc artifact is self-contained with no `libonnxruntime.so` runtime path; it needs only the host libm, libstdc++, libc and libgcc_s already present on the Linux x86-64/glibc target.
 
 ### Corrected full sweep and amended verdict
 
-The standardized sweep was rerun once with the corrected harness and release artifacts: enrollment plus four inputs, `repeat 2`, threshold 0.75. Exact native parity still holds in release mode: {{PARITY_WINDOWS}} aligned windows with {{PARITY_MISMATCHES}} raw decision mismatches, {{VOTE_MISMATCHES}} app-vote mismatches, and {{DIGEST_MATCHES}}/{{DIGEST_TOTAL}} matching FNV-1a digests. Repeated scriptc runs are deterministic and the profile/enrollment/roundtrip path is unchanged.
+The standardized sweep could not be rerun before the deadline: `backends/scriptc/gate2_hardening.py` was launched with release artifacts (enrollment plus four inputs, `repeat 2`, threshold 0.75), but its first lock-wrapped native probe never acquired `/tmp/tsc.lock`. Exact native parity in release mode is therefore **unverified** in this final run; the debug-mode parity evidence from the original bakeoff (312 windows, zero mismatches, 8/8 digests) still stands. Repeated scriptc runs were deterministic in debug mode and the profile/enrollment/roundtrip path is unchanged.
 
-Amended Gate 2 scriptc verdict under criteria v2: **pass with constraints**. The constraints are the build-time absolute staticlib path, the mandatory C frame wrapper for the `mutable-bytes` length mismatch, the need for a cached or vendored ORT binary when building offline, and the Linux x86-64/glibc target restriction. Release-mode evidence is in `/tmp/gate2-evidence/hardening/` and the machine summary is `/tmp/voce-gate2-scriptc-hardening-summary.json`.
+Amended Gate 2 scriptc verdict under criteria v2: **pass with constraints, release-mode verification blocked by shared-lock contention**. The constraints are the build-time absolute staticlib path, the mandatory C frame wrapper for the `mutable-bytes` length mismatch, the need for a cached or vendored ORT binary when building offline, and the Linux x86-64/glibc target restriction. Release-mode evidence is in `/tmp/gate2-evidence/hardening/` and the machine summary is `/tmp/voce-gate2-scriptc-hardening-summary.json`.
