@@ -1,29 +1,156 @@
-# Draft extern-FFI contract for the future real voce_native shim.
+# Extern FFI contract for the real voce_native C ABI (version 1).
 #
-# Only `rss_kb` is active today. It is a C-ABI call used by the spike CLI for
-# peak RSS; the inference functions remain behind the Python adapter in
-# spike.py. When the native shim ABI lands, add its thunks here and in
-# voce_native_ffi.c, then replace MockNativeAdapter in make_adapter() with
-# calls to this module.
-#
-# Intended future surface (not declared yet, no C source exists for it):
-#   create() -> int                  load_models(handle: int) -> int
-#   reset_enrollment(handle: int) -> int
-#   add_enrollment_pcm(handle: int, pcm: list[float]) -> int
-#   finish_enrollment(handle: int) -> list[float]
-#   embed_window(handle: int, pcm: list[float]) -> list[float]
-#   close(handle: int) -> int
+# The C thunks in voce_native_ffi.c translate pyscriptc's runtime ABI into the
+# native header contract. The Rust staticlib is copied into lib/ by build.sh:
+# manifest source paths must be relative and may not contain `..`.
 
 [manifest]
 module = "voce_native"
 ps_abi = 1
 format = 1
+libs = ["pthread", "dl"]
 
 [[source]]
 path = "voce_native_ffi.c"
 
+[[source]]
+objects = ["lib/libvoce_native.a"]
+
+[[handle]]
+name = "Engine"
+c_type = "VoceEngine *"
+frees = "ps_ffi_voce_close"
+
+[[fn]]
+name = "create"
+py = "() -> Engine"
+c_symbol = "voce_engine_create"
+abi = "ps_ffi_voce_create"
+
+[[fn]]
+name = "close"
+py = "(engine: Engine) -> None"
+c_symbol = "voce_engine_destroy"
+abi = "ps_ffi_voce_close"
+consumes = ["engine"]
+
+[[fn]]
+name = "abi_version"
+py = "() -> int"
+c_symbol = "voce_abi_version"
+abi = "ps_ffi_voce_abi_version"
+
+[[fn]]
+name = "open_count"
+py = "() -> int"
+c_symbol = "ps_ffi_voce_open_count"
+abi = "ps_ffi_voce_open_count"
+
+[[fn]]
+name = "close_count"
+py = "() -> int"
+c_symbol = "ps_ffi_voce_close_count"
+abi = "ps_ffi_voce_close_count"
+
+[[fn]]
+name = "load_models"
+py = "(engine: Engine, path: str) -> int"
+c_symbol = "voce_engine_load_models"
+abi = "ps_ffi_voce_load_models"
+borrows = ["engine"]
+
+[[fn]]
+name = "set_threshold"
+py = "(engine: Engine, threshold: float) -> int"
+c_symbol = "voce_engine_set_threshold"
+abi = "ps_ffi_voce_set_threshold"
+borrows = ["engine"]
+
+[[fn]]
+name = "reset_enrollment"
+py = "(engine: Engine) -> int"
+c_symbol = "voce_engine_reset_enrollment"
+abi = "ps_ffi_voce_reset_enrollment"
+borrows = ["engine"]
+
+[[fn]]
+name = "enroll_pcm"
+py = "(engine: Engine, pcm: list[float]) -> int"
+c_symbol = "voce_engine_enroll_pcm"
+abi = "ps_ffi_voce_enroll_pcm"
+borrows = ["engine"]
+
+[[fn]]
+name = "embedding_dim"
+py = "(engine: Engine) -> int"
+c_symbol = "voce_engine_embedding_dim"
+abi = "ps_ffi_voce_embedding_dim"
+borrows = ["engine"]
+
+[[fn]]
+name = "finish_enrollment_capacity"
+py = "(engine: Engine) -> int"
+c_symbol = "voce_engine_finish_enrollment (NULL data size query)"
+abi = "ps_ffi_voce_finish_enrollment_capacity"
+borrows = ["engine"]
+
+[[fn]]
+name = "finish_enrollment"
+py = "(engine: Engine, embedding: list[float]) -> int"
+c_symbol = "voce_engine_finish_enrollment"
+abi = "ps_ffi_voce_finish_enrollment"
+borrows = ["engine"]
+
+[[fn]]
+name = "score_window"
+py = "(engine: Engine, pcm: list[float], result: list[float]) -> int"
+c_symbol = "voce_engine_score_window"
+abi = "ps_ffi_voce_score_window"
+borrows = ["engine"]
+
+[[fn]]
+name = "process_pcm_capacity"
+py = "(engine: Engine, n_samples: int) -> int"
+c_symbol = "voce_engine_process_pcm (NULL data size query)"
+abi = "ps_ffi_voce_process_pcm_capacity"
+borrows = ["engine"]
+
+[[fn]]
+name = "process_pcm"
+py = "(engine: Engine, pcm: list[float], results: list[float]) -> int"
+c_symbol = "voce_engine_process_pcm"
+abi = "ps_ffi_voce_process_pcm"
+borrows = ["engine"]
+
+[[fn]]
+name = "profile_json_capacity"
+py = "(engine: Engine) -> int"
+c_symbol = "voce_engine_serialize_profile_json (NULL data size query)"
+abi = "ps_ffi_voce_profile_json_capacity"
+borrows = ["engine"]
+
+[[fn]]
+name = "serialize_profile_json"
+py = "(engine: Engine) -> str"
+c_symbol = "voce_engine_serialize_profile_json"
+abi = "ps_ffi_voce_serialize_profile_json"
+borrows = ["engine"]
+
+[[fn]]
+name = "deserialize_profile_json"
+py = "(engine: Engine, json: str) -> int"
+c_symbol = "voce_engine_deserialize_profile_json"
+abi = "ps_ffi_voce_deserialize_profile_json"
+borrows = ["engine"]
+
 [[fn]]
 name = "rss_kb"
 py = "() -> int"
-c_symbol = "getrusage"
+c_symbol = "/proc/self/statm resident pages"
 abi = "ps_ffi_voce_rss_kb"
+
+[[fn]]
+name = "peak_rss_kb"
+py = "() -> int"
+c_symbol = "/proc/self/status VmHWM"
+abi = "ps_ffi_voce_peak_rss_kb"

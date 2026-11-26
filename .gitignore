@@ -67,4 +67,5 @@ build/
 # pyscriptc backend spike (local build outputs and plans)
 backends/pyscriptc/voce_spike
 backends/pyscriptc/voce_spike.*
+backends/pyscriptc/lib/
 .agents/plans/
