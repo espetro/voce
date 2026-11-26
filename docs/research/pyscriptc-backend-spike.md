@@ -1,6 +1,6 @@
 # pyscriptc backend spike findings
 
-Date: 2026-11-26. Lane C of the Voce backend spike program, branch `voce-spike-pyscriptc-backend`. Scope was `backends/pyscriptc/` and this document only. No Rust app, panel, macOS driver, eval harness, or native lane artifact was touched. The approved shim-first strategy was followed: a narrow local adapter contract with a deterministic mock, no dependency on the separate native shim worktree.
+Date: 2026-11-26. Lane C of the Voce backend spike program, branch `voce-spike-pyscriptc-backend`. Scope was `backends/pyscriptc/` and this document only. No Rust app, panel, macOS driver, eval harness, or native lane artifact was touched. The approved shim-first strategy was followed: a narrow local adapter contract with a deterministic mock, no dependency on the separate native shim worktree. Lane C2 later validated the real native ABI in this same worktree; see `docs/research/pyscriptc-native-integration.md`.
 
 ## What was built
 
