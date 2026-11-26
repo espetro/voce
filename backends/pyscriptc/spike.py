@@ -8,7 +8,6 @@ point between the deterministic mock and a future voce_native FFI module.
 import json
 import math
 import os
-import struct
 import sys
 import time
 
@@ -196,8 +195,14 @@ def little_int(raw: list[int], offset: int, width: int) -> int:
 
 
 def f32_from_bits(bits: int) -> float:
-    packed: bytes = struct.pack("<I", bits)
-    return struct.unpack("<f", packed)[0]
+    """Decode finite little-endian IEEE-754 f32 without per-sample allocation."""
+    sign: float = -1.0 if (bits >> 31) != 0 else 1.0
+    exponent: int = (bits >> 23) & 255
+    mantissa: int = bits & 8388607
+    if exponent == 0:
+        return sign * (float(mantissa) / 8388608.0) * (2.0 ** -126)
+    value: float = (1.0 + float(mantissa) / 8388608.0) * (2.0 ** (exponent - 127))
+    return sign * value
 
 
 def read_f32(raw: list[int]) -> list[float]:
@@ -360,6 +365,8 @@ def run_once(
         started: float = time.perf_counter()
         embedding: list[float] = adapter.embed_window(window)
         similarity: float = adapter.similarity(profile.embedding, embedding)
+        if similarity > 1.0:
+            similarity = 1.0
         elapsed_ms: float = (time.perf_counter() - started) * 1000.0
         passed: bool = similarity >= threshold
         decisions += "1" if passed else "0"

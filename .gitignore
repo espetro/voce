@@ -62,3 +62,8 @@ build/
 *.swo
 *.bak
 .osgrep
+
+# pyscriptc backend spike (local build outputs and plans)
+backends/pyscriptc/voce_spike
+backends/pyscriptc/voce_spike.*
+.agents/plans/
