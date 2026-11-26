@@ -4,8 +4,14 @@
 // Usage (built executable):
 //   voce-scriptc-native run --input file.wav --enroll enroll.wav
 //   voce-scriptc-native run --input file.pcm --profile native-profile.json
-//   voce-scriptc-native bench [--seconds N] [--repeat 2]
+//   voce-scriptc-native bench [--enroll enroll.wav] [--input target.wav]
+//     [--other other.wav] [--backend real|mock] [--model model.onnx]
+//     [--models-dir model-directory] [--repeat 2]
 //   voce-scriptc-native roundtrip --enroll enroll.wav --input file.wav
+//
+// Backend selection uses the unchanged ABI v1 `voce_engine_load_models`
+// sentinel: "mock://builtin" selects the deterministic backend, while an ONNX
+// file or a directory containing one model selects the real backend.
 //
 // Build:
 //   ffi/build-wrapper.sh
@@ -71,6 +77,33 @@ function getInt(args: string[], name: string, fallback: number): number {
   return raw === null ? fallback : parseInt(raw, 10);
 }
 
+interface BackendSelection {
+  backend: "mock" | "real";
+  modelsPath: string;
+}
+
+/** Resolve the caller's backend choice without changing the C ABI. */
+function selectBackend(args: string[]): BackendSelection {
+  const backend = getOpt(args, "--backend") ?? "mock";
+  if (backend !== "mock" && backend !== "real") {
+    throw new Error("--backend must be mock or real, got " + backend);
+  }
+  const model = getOpt(args, "--model");
+  const modelsDir = getOpt(args, "--models-dir");
+  if (model !== null && modelsDir !== null) {
+    throw new Error("use --model or --models-dir, not both");
+  }
+  const modelsPath = model ?? modelsDir ?? "mock://builtin";
+  if (backend === "mock") {
+    if (model !== null || modelsDir !== null) {
+      throw new Error("--backend mock does not accept --model or --models-dir");
+    }
+  } else if (modelsPath === "mock://builtin") {
+    throw new Error("--backend real requires --model or --models-dir");
+  }
+  return { backend, modelsPath };
+}
+
 function windows(scores: VoceNativeWindowScore[]): NativeWindow[] {
   return scores.map((score, index) => ({
     index,
@@ -123,7 +156,8 @@ function main(): void {
   if (cmd === "run") {
     const input = getOpt(argv, "--input");
     if (!input) throw new Error("run: --input required");
-    const adapter = new VoceNativeAdapter();
+    const selection = selectBackend(argv);
+    const adapter = new VoceNativeAdapter(selection.modelsPath);
     const enroll = getOpt(argv, "--enroll");
     const profile = getOpt(argv, "--profile");
     let profileJson: string | null = null;
@@ -144,7 +178,8 @@ function main(): void {
     const scored = scoreInput(adapter, loadInput(input), input);
     adapter.close();
     out = {
-      command: "run", backend: adapter.backendName, input,
+      command: "run", backend: selection.backend, shim: adapter.backendName,
+      models_path: selection.modelsPath, input,
       embedding_dim: adapter.embeddingDim, enrolled: true,
       profile_json: profileJson === null ? null : JSON.parse(profileJson),
       profile_out: profileOut,
@@ -164,9 +199,10 @@ function main(): void {
     const enrollFile = getOpt(argv, "--enroll");
     const targetFile = getOpt(argv, "--input");
     const otherFile = getOpt(argv, "--other");
+    const selection = selectBackend(argv);
     const runs = [];
     for (let i = 0; i < repeat; i++) {
-      const adapter = new VoceNativeAdapter();
+      const adapter = new VoceNativeAdapter(selection.modelsPath);
       const profileJson = enrollAdapter(
         adapter, enrollFile !== null ? loadInput(enrollFile) : synthPcm(6, 1, 210));
       const target = scoreInput(
@@ -194,7 +230,8 @@ function main(): void {
       }
     }
     out = {
-      command: "bench", backend: "voce_native-staticlib", seconds: secs,
+      command: "bench", backend: selection.backend, shim: "voce_native-staticlib",
+      models_path: selection.modelsPath, seconds: secs,
       repeat, deterministic, enroll: enrollFile, target: targetFile,
       other: otherFile, runs, wall_ms: Date.now() - t0,
       rss_kib: rssKib(), artifact_bytes: artifactBytes(),
@@ -203,16 +240,18 @@ function main(): void {
     const input = getOpt(argv, "--input");
     const enroll = getOpt(argv, "--enroll");
     if (!input || !enroll) throw new Error("roundtrip: --input and --enroll required");
-    const adapter = new VoceNativeAdapter();
+    const selection = selectBackend(argv);
+    const adapter = new VoceNativeAdapter(selection.modelsPath);
     const json = enrollAdapter(adapter, loadInput(enroll));
     const first = scoreInput(adapter, loadInput(input), "before");
     adapter.close();
-    const restored = new VoceNativeAdapter();
+    const restored = new VoceNativeAdapter(selection.modelsPath);
     restored.deserializeProfileJson(json);
     const second = scoreInput(restored, loadInput(input), "after");
     restored.close();
     out = {
-      command: "roundtrip", backend: "voce_native-staticlib", input, enroll,
+      command: "roundtrip", backend: selection.backend, shim: "voce_native-staticlib",
+      models_path: selection.modelsPath, input, enroll,
       profile_bytes: json.length,
       profile_json: JSON.parse(json),
       score_digest_equal:
