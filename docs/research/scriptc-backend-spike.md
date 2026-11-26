@@ -10,6 +10,10 @@ real `voce_native` FFI shim?
 **Answer: yes**, with one significant FFI fence (see §FFI fences). Full static
 compilation was achieved; no dynamic-tier code in the output.
 
+Lane B2 extends this to the real stateful `voce_native` ABI; see
+[`scriptc-native-integration.md`](scriptc-native-integration.md) for the
+verdict and comparison.
+
 ## Layout
 
 ```

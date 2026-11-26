@@ -161,12 +161,20 @@ function main(): void {
   } else if (cmd === "bench") {
     const secs = parseFloat(getOpt(argv, "--seconds") ?? "10");
     const repeat = getInt(argv, "--repeat", 2);
+    const enrollFile = getOpt(argv, "--enroll");
+    const targetFile = getOpt(argv, "--input");
+    const otherFile = getOpt(argv, "--other");
     const runs = [];
     for (let i = 0; i < repeat; i++) {
       const adapter = new VoceNativeAdapter();
-      const profileJson = enrollAdapter(adapter, synthPcm(6, 1, 210));
-      const target = scoreInput(adapter, synthPcm(secs, 1, 210), "target");
-      const other = scoreInput(adapter, synthPcm(secs, 7, 950), "other");
+      const profileJson = enrollAdapter(
+        adapter, enrollFile !== null ? loadInput(enrollFile) : synthPcm(6, 1, 210));
+      const target = scoreInput(
+        adapter, targetFile !== null ? loadInput(targetFile) : synthPcm(secs, 1, 210),
+        targetFile ?? "target");
+      const other = scoreInput(
+        adapter, otherFile !== null ? loadInput(otherFile) : synthPcm(secs, 7, 950),
+        otherFile ?? "other");
       adapter.close();
       runs.push({
         profile_json: JSON.parse(profileJson),
@@ -187,7 +195,8 @@ function main(): void {
     }
     out = {
       command: "bench", backend: "voce_native-staticlib", seconds: secs,
-      repeat, deterministic, runs, wall_ms: Date.now() - t0,
+      repeat, deterministic, enroll: enrollFile, target: targetFile,
+      other: otherFile, runs, wall_ms: Date.now() - t0,
       rss_kib: rssKib(), artifact_bytes: artifactBytes(),
     };
   } else if (cmd === "roundtrip") {
