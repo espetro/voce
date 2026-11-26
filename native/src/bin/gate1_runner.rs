@@ -72,7 +72,7 @@ struct Args {
     #[arg(long = "enroll", required = true)]
     enroll: Vec<String>,
     /// Target/other WAV files scored against the enrollment.
-    #[arg(long = "inputs", required = true)]
+    #[arg(long = "inputs", required = true, num_args = 1.., value_delimiter = ' ')]
     inputs: Vec<String>,
     /// Gate threshold (app default 0.75).
     #[arg(long, default_value_t = 0.75)]
