@@ -21,6 +21,21 @@ use voce_native::constants::{HOP_SAMPLES, SAMPLE_RATE_HZ, WINDOW_SAMPLES};
 use voce_native::metrics::{current_rss_bytes, digest_results, peak_rss_bytes};
 use voce_native::wav;
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum BackendArg {
+    Mock,
+    Real,
+}
+
+impl BackendArg {
+    fn as_str(self) -> &'static str {
+        match self {
+            BackendArg::Mock => "mock",
+            BackendArg::Real => "real",
+        }
+    }
+}
+
 use abi::{
     voce_abi_version, voce_engine_create, voce_engine_deserialize_profile_json,
     voce_engine_destroy, voce_engine_embedding_dim, voce_engine_enroll_pcm,
@@ -28,6 +43,10 @@ use abi::{
     voce_engine_process_pcm, voce_engine_reset_enrollment,
     voce_engine_serialize_profile_json, voce_engine_set_threshold,
 };
+
+thread_local! {
+    static MODEL_LOAD_MS: std::cell::Cell<f64> = const { std::cell::Cell::new(0.0) };
+}
 
 struct Engine(*mut VoceEngine);
 
@@ -52,12 +71,27 @@ impl Engine {
         }
     }
 
-    fn configure(&self, threshold: f32) -> Result<(), String> {
-        let models = CString::new("mock://builtin").unwrap();
+    fn configure(
+        &self,
+        threshold: f32,
+        backend: BackendArg,
+        models_dir: Option<&str>,
+    ) -> Result<(), String> {
+        let models_dir = match backend {
+            BackendArg::Mock => "mock://builtin".to_string(),
+            BackendArg::Real => match models_dir {
+                Some(dir) => dir.to_string(),
+                None => return Err("--backend real requires --models-dir".to_string()),
+            },
+        };
+        let models = CString::new(models_dir.as_str()).map_err(|err| err.to_string())?;
+        let load_started = std::time::Instant::now();
         Self::check(
             unsafe { voce_engine_load_models(self.ptr(), models.as_ptr()) },
             "voce_engine_load_models",
         )?;
+        MODEL_LOAD_MS
+            .with(|cell| cell.set(load_started.elapsed().as_secs_f64() * 1000.0));
         Self::check(
             unsafe { voce_engine_set_threshold(self.ptr(), threshold) },
             "voce_engine_set_threshold",
@@ -190,6 +224,8 @@ struct Options {
     threshold: f32,
     repeats: usize,
     out: Option<String>,
+    backend: BackendArg,
+    models_dir: Option<String>,
 }
 
 impl Default for Options {
@@ -201,6 +237,8 @@ impl Default for Options {
             threshold: 0.75,
             repeats: 2,
             out: None,
+            backend: BackendArg::Mock,
+            models_dir: None,
         }
     }
 }
@@ -237,6 +275,14 @@ fn parse_args() -> Result<Options, String> {
                     return Err("--repeat must be between 1 and 16".into());
                 }
             }
+            "--backend" => {
+                options.backend = match value.as_str() {
+                    "mock" => BackendArg::Mock,
+                    "real" => BackendArg::Real,
+                    other => return Err(format!("unknown --backend: {other} (mock|real)")),
+                };
+            }
+            "--models-dir" => options.models_dir = Some(value),
             _ => return Err(format!("unknown option: {key}")),
         }
     }
@@ -311,7 +357,8 @@ fn run_once(
 ) -> Result<Value, String> {
     let rss_start = current_rss_bytes();
     let engine = Engine::new()?;
-    engine.configure(options.threshold)?;
+    engine.configure(options.threshold, options.backend, options.models_dir.as_deref())?;
+    let model_load_ms = MODEL_LOAD_MS.with(|cell| cell.get());
 
     let mut enrolled_samples = 0usize;
     for path in enroll_files {
@@ -324,7 +371,7 @@ fn run_once(
     let profile_json = engine.profile_json()?;
 
     let restored = Engine::new()?;
-    restored.configure(options.threshold)?;
+    restored.configure(options.threshold, options.backend, options.models_dir.as_deref())?;
     restored.restore_profile_json(&profile_json)?;
 
     let mut inputs = Vec::new();
@@ -384,6 +431,8 @@ fn run_once(
     let run_digest = digests.join("|");
     Ok(json!({
         "digest": run_digest,
+        "backend": options.backend.as_str(),
+        "model_load_ms": model_load_ms,
         "embedding_dimension": embedding_dim,
         "profile_dimension": profile.len(),
         "profile_json_bytes": profile_json.len(),
@@ -423,7 +472,7 @@ fn run() -> Result<(), String> {
 
     let report = json!({
         "abi_version": unsafe { voce_abi_version() },
-        "backend": "mock",
+        "backend": options.backend.as_str(),
         "sample_rate_hz": SAMPLE_RATE_HZ,
         "window_samples": WINDOW_SAMPLES,
         "hop_samples": HOP_SAMPLES,
