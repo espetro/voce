@@ -63,3 +63,8 @@ build/
 *.swo
 *.bak
 .osgrep
+
+# scriptc spike FFI build outputs
+backends/scriptc/ffi/*.o
+backends/scriptc/ffi/*.a
+backends/scriptc/probe-*

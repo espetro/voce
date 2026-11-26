@@ -1,0 +1,28 @@
+{
+  "ffi_format": 7,
+  "functions": [
+    {
+      "name": "vwsCreate",
+      "symbol": "vws_create",
+      "params": [],
+      "returns": "i32"
+    },
+    {
+      "name": "vwsDestroy",
+      "symbol": "vws_destroy",
+      "params": ["i32"],
+      "returns": "void"
+    },
+    {
+      "name": "vwsCall",
+      "symbol": "vws_call",
+      "params": ["i32", "u32", "mutable-bytes"],
+      "returns": "i32"
+    }
+  ],
+  "libraries": [
+    "./libvoce_native_scriptc.a",
+    "/home/own-agents/.worktrees/voce-backend-spikes/scriptc-backend/native/target/debug/libvoce_native.a"
+  ],
+  "system_libraries": ["m", "pthread", "dl"]
+}
