@@ -1,0 +1,19 @@
+{
+  "ffi_format": 7,
+  "functions": [
+    {
+      "name": "voceAbiVersion",
+      "symbol": "voce_abi_version",
+      "params": [],
+      "returns": "i32"
+    }
+  ],
+  "libraries": [
+    "/home/own-agents/.worktrees/voce-backend-spikes/scriptc-backend/native/target/debug/libvoce_native.so"
+  ],
+  "system_libraries": [
+    "dl",
+    "pthread",
+    "m"
+  ]
+}

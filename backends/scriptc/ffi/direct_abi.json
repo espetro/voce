@@ -1,0 +1,51 @@
+{
+  "ffi_format": 7,
+  "functions": [
+    {
+      "name": "voceAbiVersion",
+      "symbol": "voce_abi_version",
+      "params": [],
+      "returns": "i32"
+    },
+    {
+      "name": "voceEngineCreate",
+      "symbol": "voce_engine_create",
+      "params": [],
+      "returns": "pointer"
+    },
+    {
+      "name": "voceEngineDestroy",
+      "symbol": "voce_engine_destroy",
+      "params": ["pointer"],
+      "returns": "void"
+    },
+    {
+      "name": "voceEngineEmbeddingDim",
+      "symbol": "voce_engine_embedding_dim",
+      "params": ["pointer", "mutable-bytes"],
+      "returns": "i32"
+    },
+    {
+      "name": "voceEngineEnrollPcm",
+      "symbol": "voce_engine_enroll_pcm",
+      "params": ["pointer", "bytes"],
+      "returns": "i32"
+    },
+    {
+      "name": "voceEngineDeserializeProfileJson",
+      "symbol": "voce_engine_deserialize_profile_json",
+      "params": ["pointer", "bytes"],
+      "returns": "i32"
+    },
+    {
+      "name": "voceEngineScoreWindow",
+      "symbol": "voce_engine_score_window",
+      "params": ["pointer", "bytes", "mutable-bytes"],
+      "returns": "i32"
+    }
+  ],
+  "libraries": [
+    "/home/own-agents/.worktrees/voce-backend-spikes/scriptc-backend/native/target/debug/libvoce_native.so"
+  ],
+  "system_libraries": ["dl", "pthread", "m"]
+}
