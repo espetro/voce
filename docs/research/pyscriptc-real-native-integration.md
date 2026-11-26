@@ -150,6 +150,12 @@ The process_pcm capacity protocol remains valid with the real backend: the C thu
 - Digest construction: compare native FNV-1a over f32 bit patterns, not the pyscriptc decision-string digest.
 - Cargo.lock pulls `ureq` 3.5.2 even though the A2 dependency comment says it is pinned to 2.x. Noted as an observation; no dependency change was made in this lane.
 
+## Final verification
+
+The final checks were rerun under `/tmp/tsc.lock` after the cold rebuild. Native `cargo test` again passed 6 unit, 7 ABI, and 2 real tests (real tests 1.93 s in the final run, 6.079 s total wall including test-binary rebuild and lock wait); the only warning remains the unused `GATE_BLOCK` constant. The final pyscriptc real-backend probe was run as two full sweeps over both fixtures (four invocations, 33.439 s total wall including lock wait). Both sweeps reproduced the native FNV-1a digests `0268ffd8cda41a50` (target) and `7720ac834e25c88c` (other), stable pyscriptc decision digests `546870402` and `530092816`, `close_count = 2`, and `profile_round_trip = true` on every invocation. Per-run `wall_ms_total` was 7,945.0 to 9,818.8 ms and peak RSS was 174,688 to 178,988 KB.
+
+`git diff --check` was clean after all changes.
+
 ## Constraints and follow-ups
 
 1. Keep `voce_native.h` v1 frozen; backend selection must stay inside `load_models(path)`.
