@@ -4,6 +4,10 @@ version = "0.1.0"
 edition = "2021"
 license = "MIT"
 description = "C ABI shim for Voce speaker-gate inference"
+build = "build.rs"
+
+[build-dependencies]
+cc = "1"
 
 [lib]
 name = "voce_native"

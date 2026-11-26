@@ -5,6 +5,7 @@
 //! full C ABI without ONNX models or downloads.
 
 pub mod abi;
+pub mod adapter;
 pub mod constants;
 pub mod engine;
 pub mod metrics;
