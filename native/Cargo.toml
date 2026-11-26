@@ -11,3 +11,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 serde_json = "1"
+
+[[bin]]
+name = "voce-native-probe"
+path = "src/bin/probe.rs"
