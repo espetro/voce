@@ -8,7 +8,9 @@
 module = "voce_native"
 ps_abi = 1
 format = 1
-libs = ["pthread", "dl"]
+# ONNX Runtime's static Rust shim pulls in absl/cctz C++ objects, so the
+# pyscriptc link line needs libstdc++ (and libm) in addition to pthread/dl.
+libs = ["pthread", "dl", "stdc++", "m"]
 
 [[source]]
 path = "voce_native_ffi.c"
