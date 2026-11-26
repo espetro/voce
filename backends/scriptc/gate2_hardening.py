@@ -148,7 +148,7 @@ def main() -> None:
 
     evidence = args.evidence_dir
     evidence.mkdir(parents=True, exist_ok=True)
-    native_exe = ROOT / "native/target/release/voce-native-probe"
+    native_exe = args.native_probe.resolve()
     native_cmd = [
         str(native_exe), "--backend", "real", "--models-dir", str(MODEL),
         "--enroll", str(FIXTURES / "enroll_1272.wav"),
