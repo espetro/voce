@@ -186,6 +186,10 @@ pub unsafe extern "C" fn voce_engine_enroll_pcm(
         Ok(engine) => engine,
         Err(status) => return status.code(),
     };
+    // Header contract: a zero sample count is a valid no-op with NULL PCM.
+    if n_samples == 0 {
+        return Status::Ok.code();
+    }
     let samples = match unsafe { pcm_slice(pcm, n_samples) } {
         Ok(samples) => samples,
         Err(status) => return status.code(),

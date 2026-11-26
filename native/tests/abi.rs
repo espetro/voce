@@ -310,6 +310,19 @@ fn profile_json_roundtrips_and_rejects_bad_input() {
 }
 
 #[test]
+fn zero_length_enrollment_is_a_noop() {
+    let engine = Engine::new();
+    assert_eq!(
+        unsafe { voce_engine_enroll_pcm(engine.ptr(), ptr::null(), 0) },
+        OK
+    );
+    assert_eq!(
+        unsafe { voce_engine_enroll_pcm(engine.ptr(), ptr::null(), -1) },
+        INVALID_ARGUMENT
+    );
+}
+
+#[test]
 fn reset_and_threshold_are_enforced() {
     let audio = tone(220.0, WINDOW_SAMPLES);
     let engine = enrolled_engine(&audio);
