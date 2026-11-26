@@ -277,7 +277,7 @@ pub fn rms_energy(pcm: &[f32]) -> f64 {
     (sum / pcm.len() as f64).sqrt()
 }
 
-fn normalize(vector: &mut [f32; EMBEDDING_DIM]) {
+pub(crate) fn normalize(vector: &mut [f32; EMBEDDING_DIM]) {
     let norm: f32 = vector.iter().map(|value| value * value).sum::<f32>().sqrt();
     if norm.is_finite() && norm > 1e-8 {
         for value in vector.iter_mut() {
@@ -288,7 +288,7 @@ fn normalize(vector: &mut [f32; EMBEDDING_DIM]) {
     }
 }
 
-fn cosine_similarity(left: &[f32; EMBEDDING_DIM], right: &[f32; EMBEDDING_DIM]) -> f32 {
+pub(crate) fn cosine_similarity(left: &[f32; EMBEDDING_DIM], right: &[f32; EMBEDDING_DIM]) -> f32 {
     let dot: f32 = left.iter().zip(right).map(|(a, b)| a * b).sum();
     dot.clamp(0.0, 1.0)
 }
