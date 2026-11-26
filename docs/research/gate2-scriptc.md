@@ -178,8 +178,8 @@ All build and probe commands in this amendment were individually wrapped in `flo
 
 | Metric | scriptc (release) | native probe (release) | Ratio |
 | --- | --- | --- | --- |
-| Mean 3 s window runtime | not measured ms | not measured ms | not measuredx |
-| Peak RSS | not measured B | not measured B | not measuredx |
+| Mean 3 s window runtime | not measured | not measured | not measured |
+| Peak RSS | not measured | not measured | not measured |
 | Artifact size | 31010200 B | 26523904 B | n/a |
 | Model load | not measured ms mean | not measured ms | n/a |
 
@@ -189,4 +189,4 @@ All build and probe commands in this amendment were individually wrapped in `flo
 
 The standardized sweep could not be rerun before the deadline: `backends/scriptc/gate2_hardening.py` was launched with release artifacts (enrollment plus four inputs, `repeat 2`, threshold 0.75), but its first lock-wrapped native probe never acquired `/tmp/tsc.lock`. Exact native parity in release mode is therefore **unverified** in this final run; the debug-mode parity evidence from the original bakeoff (312 windows, zero mismatches, 8/8 digests) still stands. Repeated scriptc runs were deterministic in debug mode and the profile/enrollment/roundtrip path is unchanged.
 
-Amended Gate 2 scriptc verdict under criteria v2: **pass with constraints, release-mode verification blocked by shared-lock contention**. The constraints are the build-time absolute staticlib path, the mandatory C frame wrapper for the `mutable-bytes` length mismatch, the need for a cached or vendored ORT binary when building offline, and the Linux x86-64/glibc target restriction. Release-mode evidence is in `/tmp/gate2-evidence/hardening/` and the machine summary is `/tmp/voce-gate2-scriptc-hardening-summary.json`.
+Amended Gate 2 scriptc verdict under criteria v2: **pass with constraints, release-mode verification blocked by shared-lock contention**. The constraints are the build-time absolute staticlib path, the mandatory C frame wrapper for the `mutable-bytes` length mismatch, the need for a cached or vendored ORT binary when building offline, and the Linux x86-64/glibc target restriction. Release build evidence is `/tmp/voce-gate2-hardening-release-build.log`, the release artifact is `/tmp/voce-gate2-scriptc-native-release` and the release native probe is `native/target/release/voce-native-probe`; `/tmp/gate2-evidence/hardening/` is empty because the lock-wrapped sweep never started. The machine summary is `/tmp/voce-gate2-scriptc-hardening-summary.json`.
