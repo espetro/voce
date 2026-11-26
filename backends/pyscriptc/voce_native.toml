@@ -1,0 +1,29 @@
+# Draft extern-FFI contract for the future real voce_native shim.
+#
+# Only `rss_kb` is active today. It is a C-ABI call used by the spike CLI for
+# peak RSS; the inference functions remain behind the Python adapter in
+# spike.py. When the native shim ABI lands, add its thunks here and in
+# voce_native_ffi.c, then replace MockNativeAdapter in make_adapter() with
+# calls to this module.
+#
+# Intended future surface (not declared yet, no C source exists for it):
+#   create() -> int                  load_models(handle: int) -> int
+#   reset_enrollment(handle: int) -> int
+#   add_enrollment_pcm(handle: int, pcm: list[float]) -> int
+#   finish_enrollment(handle: int) -> list[float]
+#   embed_window(handle: int, pcm: list[float]) -> list[float]
+#   close(handle: int) -> int
+
+[manifest]
+module = "voce_native"
+ps_abi = 1
+format = 1
+
+[[source]]
+path = "voce_native_ffi.c"
+
+[[fn]]
+name = "rss_kb"
+py = "() -> int"
+c_symbol = "getrusage"
+abi = "ps_ffi_voce_rss_kb"

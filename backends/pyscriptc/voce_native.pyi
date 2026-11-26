@@ -1,0 +1,3 @@
+"""Typed surface for the FFI manifest used by the spike CLI."""
+
+def rss_kb() -> int: ...
