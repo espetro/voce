@@ -51,6 +51,11 @@ Measured probe result with generated 4 s 16 kHz mono tones (enroll and test at 2
 
 ## Next steps for real sherpa-onnx integration
 
+Lane A2 landed the real ONNX backend; see `native-shim-real.md` for model
+facts, measurements, and remaining parity gaps. The notes below are the
+original lane-A plan, kept for context.
+
+
 1. Confirm whether the current WeSpeaker ONNX model can be loaded by sherpa-onnx directly, or select a supported speaker-embedding model with comparable features. Record export/license/runtime constraints in the model research lane.
 2. Implement model loading behind `voce_engine_load_models`: fbank/VAD configuration at 16 kHz, 3 s windows with 1.5 s hop, embedding extraction, and cosine gate scoring. Keep the ABI surface unchanged where possible.
 3. Decide profile compatibility explicitly. If the real embedding dimension differs from 256, either pad/project to 256 for ABI v1 or introduce `VOCE_NATIVE_ABI_VERSION` 2 with a typed dimension field and update every FFI consumer.
