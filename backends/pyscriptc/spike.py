@@ -176,6 +176,7 @@ class VoceNativeAdapter:
         self.vote_window: int = vote_window
         self.status: int = VOCE_OK
         self.process_status: int = VOCE_OK
+        self.score_status: int = VOCE_OK
         self.status = voce_native.load_models(self.engine, MODELS_DIR)
         if self.status == VOCE_OK:
             self.status = voce_native.set_threshold(self.engine, threshold)
@@ -213,6 +214,7 @@ class VoceNativeAdapter:
     def score_window(self, window: list[float]) -> WindowScore:
         result: list[float] = [0.0, 0.0, 0.0, 0.0]
         status: int = voce_native.score_window(self.engine, window, result)
+        self.score_status = status
         if status != VOCE_OK:
             return WindowScore(0.0, 0.0, 0.0, 0)
         return WindowScore(result[0], result[1], result[2], int(result[3]))
@@ -614,6 +616,16 @@ def run_native(config: Config, pcm: list[float], enroll_pcm: list[float]) -> Non
         repeat_scores = adapter.process_pcm(pcm)
         if restore_status == VOCE_OK:
             restored_scores = restored.process_pcm(pcm)
+    score_probe: WindowScore = WindowScore(0.0, 0.0, 0.0, 0)
+    if enrollment_status == VOCE_OK and len(pcm) >= WINDOW_SAMPLES:
+        first_window: list[float] = pcm[0:WINDOW_SAMPLES]
+        score_probe = adapter.score_window(first_window)
+    score_match: bool = False
+    if len(scores) > 0:
+        score_match = (
+            score_probe.similarity == scores[0].similarity
+            and score_probe.decision == scores[0].decision
+        )
     elapsed_ms: float = (time.perf_counter() - started) * 1000.0
     roundtrip: bool = (
         restore_status == VOCE_OK and native_scores_equal(scores, restored_scores)
@@ -645,11 +657,15 @@ def run_native(config: Config, pcm: list[float], enroll_pcm: list[float]) -> Non
         artifact_bytes = os.stat(sys.argv[0]).st_size
     except OSError:
         artifact_bytes = 0
+    voce_native.close(engine)
+    voce_native.close(restored_engine)
     print(
         '{"schema":"voce-pyscriptc-native/1","backend":"native","abi_version":'
         + str(voce_native.abi_version())
         + ',"open_count":'
         + str(voce_native.open_count())
+        + ',"close_count":'
+        + str(voce_native.close_count())
         + ',"status":'
         + str(status)
         + ',"enrollment_status":'
@@ -658,6 +674,14 @@ def run_native(config: Config, pcm: list[float], enroll_pcm: list[float]) -> Non
         + str(restore_status)
         + ',"process_status":'
         + str(adapter.process_status)
+        + ',"score_window_status":'
+        + str(adapter.score_status)
+        + ',"score_window_similarity":'
+        + str(score_probe.similarity)
+        + ',"score_window_decision":'
+        + str(score_probe.decision)
+        + ',"score_window_matches_process":'
+        + bool_text(score_match)
         + ',"input":'
         + json.dumps(config.input_path)
         + ',"sample_rate":'
@@ -710,8 +734,6 @@ def run_native(config: Config, pcm: list[float], enroll_pcm: list[float]) -> Non
         + bool_text(deterministic)
         + "}"
     )
-    voce_native.close(engine)
-    voce_native.close(restored_engine)
 
 
 def parse_args(argv: list[str]) -> Config:
