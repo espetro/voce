@@ -14,10 +14,15 @@ serde_json = "1"
 ndarray = "0.15"
 kaldi-native-fbank = "0.1"
 ort = { version = "=2.0.0-rc.11", default-features = false, features = ["std", "download-binaries", "tls-rustls"] }
+clap = { version = "4", default-features = false, features = ["std", "help", "derive"] }
 
 [[bin]]
 name = "voce-native-probe"
 path = "src/bin/probe.rs"
+
+[[bin]]
+name = "voce-gate1-runner"
+path = "src/bin/gate1_runner.rs"
 
 # ort-sys 2.0.0-rc.11 downloads prebuilt ONNX Runtime via ureq; rc.11 expects
 # the ureq 2.x API, so pin it in this standalone crate.
