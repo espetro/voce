@@ -1,0 +1,28 @@
+{
+  "ffi_format": 7,
+  "functions": [
+    {
+      "name": "vaCreate",
+      "symbol": "voce_adapter_create",
+      "params": [],
+      "returns": "i32"
+    },
+    {
+      "name": "vaDestroy",
+      "symbol": "voce_adapter_destroy",
+      "params": ["i32"],
+      "returns": "void"
+    },
+    {
+      "name": "vaCall",
+      "symbol": "voce_adapter_frame",
+      "params": ["i32", "i32", "mutable-bytes"],
+      "returns": "i32"
+    }
+  ],
+  "libraries": [
+    "__ROOT__/native/target/debug/libvoce_adapter.a",
+    "__ROOT__/native/target/debug/libvoce_native.a"
+  ],
+  "system_libraries": ["m", "pthread", "dl", "stdc++"]
+}

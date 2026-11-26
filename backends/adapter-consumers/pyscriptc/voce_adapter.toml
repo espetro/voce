@@ -1,0 +1,34 @@
+# Extern FFI contract for the reviewed native adapter.
+# The C thunks only copy bytes and f64 cells; all native semantics live in
+# native/voce_adapter.c. Static archives are staged into lib/ by build.sh.
+
+[manifest]
+module = "voce_adapter"
+ps_abi = 1
+format = 1
+libs = ["pthread", "dl", "stdc++", "m"]
+
+[[source]]
+path = "adapter_thunks.c"
+
+[[source]]
+objects = ["lib/libvoce_native.a", "lib/libvoce_adapter.a"]
+
+[[fn]]
+name = "create"
+py = "() -> int"
+c_symbol = "voce_adapter_create"
+abi = "ps_ffi_va_create"
+
+[[fn]]
+name = "destroy"
+py = "(session: int) -> int"
+c_symbol = "voce_adapter_destroy"
+abi = "ps_ffi_va_destroy"
+
+[[fn]]
+name = "call"
+py = "(session: int, op: int, frame: list[int]) -> int"
+c_symbol = "voce_adapter_frame"
+abi = "ps_ffi_va_call"
+borrows = ["session", "frame"]
