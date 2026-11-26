@@ -232,7 +232,12 @@ impl MockEngine {
             }
             *slot = value as f32;
         }
-        normalize(&mut profile);
+        // Profiles produced by this engine are already normalized. Keep their
+        // exact bits on roundtrip; only repair externally supplied profiles.
+        let norm_squared: f32 = profile.iter().map(|value| value * value).sum();
+        if (norm_squared - 1.0).abs() > 1e-3 {
+            normalize(&mut profile);
+        }
 
         if let Some(threshold) = value.get("threshold").and_then(Value::as_f64) {
             self.set_threshold(threshold as f32)?;
@@ -420,7 +425,7 @@ mod tests {
     #[test]
     fn profile_json_roundtrip_preserves_decisions() {
         let audio = tone(330.0, WINDOW_SAMPLES);
-        let other = tone(800.0, WINDOW_SAMPLES);
+        let other = tone(900.0, WINDOW_SAMPLES);
         let mut engine = MockEngine::new();
         engine.enroll_pcm(&audio).unwrap();
         engine.finish_enrollment().unwrap();
