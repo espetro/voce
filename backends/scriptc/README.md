@@ -26,7 +26,31 @@ flock /tmp/tsc.lock scriptc build src/cli.ts -o voce-scriptc --no-keep-llvm
 ./voce-scriptc run --input fixture.wav --profile /tmp/profile.json
 ```
 
-## Swap to real voce_native
+## Native ABI probe
 
-Implement `NativeShim` (src/types.ts) over the real shim ABI (via `scriptc build --ffi`)
-and replace `new MockShim()` in `src/cli.ts`. Nothing in engine/audio_io/CLI changes.
+`src/voce_native_adapter.ts` drives the full stateful `voce_native` ABI through a
+thin C wrapper (`native/voce_native_scriptc.c`) so scriptc FFI never has to pass
+pointer-to-length outputs. Build it and the native CLI with:
+
+```sh
+flock /tmp/tsc.lock sh ffi/build-wrapper.sh
+flock /tmp/tsc.lock scriptc build src/cli_native.ts \
+  --ffi ffi/voce_native_scriptc.json -o voce-scriptc-native --no-keep-llvm
+```
+
+`ffi/voce_native_scriptc.json` links the C wrapper plus the Rust `staticlib`;
+`stdc++` is required by the ONNX Runtime C++ objects. No runtime `libvoce_native.so`
+path is baked into the executable.
+
+Backend selection uses the unchanged v1 `load_models` path:
+
+```sh
+./voce-scriptc-native bench --backend mock --repeat 2
+./voce-scriptc-native bench --backend real \
+  --model /path/to/wespeaker.onnx \
+  --enroll enroll.wav --input target.wav --other other.wav
+# --models-dir also accepts a directory with one embedder.onnx / *.onnx
+```
+
+`run` and `roundtrip` accept the same `--backend`, `--model` and `--models-dir`
+options. All ABIs, window sizes and profile formats remain v1.
