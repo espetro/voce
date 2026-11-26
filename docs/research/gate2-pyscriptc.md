@@ -164,4 +164,28 @@ Window counting is now normalized across lanes. One 60 s file produces exactly 3
 
 ### Release-mode measurements
 
-Pending release sweep completion.
+The native backend was rebuilt under `flock /tmp/tsc.lock` with `cargo build --release` (warm cache), and the staged `backends/pyscriptc/lib/libvoce_native.a` is byte-identical to `native/target/release/libvoce_native.a` (sha256 `cdc7b8bb51c3ef07875d5d9bbde975abc495ba5e352004960b961732f717824b`). The pyscriptc artifact was re-linked against that release staticlib; its size fell from 75,865,744 B (debug link) to 36,984,880 B. Every completed build and inference command in this amendment ran under `flock /tmp/tsc.lock`; `ldd backends/pyscriptc/voce_spike` still shows no `libonnxruntime.so`.
+
+| Metric | Native release probe | pyscriptc release-linked artifact |
+| --- | --- | --- |
+| Mean window runtime | 539.29 ms (537.51, 541.06 across two runs) | 638.73 ms (target_1272, repeat 1) |
+| Ratio to native | 1.000x | 1.184x |
+| Peak RSS | 503,898,112 B | 603,877,376 B |
+| Model load | 858.44 ms, 760.06 ms | 820.82 ms |
+| Artifact size | 26,523,904 B (probe) | 36,984,880 B |
+
+The release native mean is 539.29 ms versus 776.53 ms in the earlier contended native runs, and the release-linked pyscriptc mean is 638.73 ms versus 986.63 ms with the debug staticlib. The ratio is 1.184x, down from 1.271x, below the criteria v2 1.5x cap, and the absolute mean is below 1 s per 3 s window. RSS remains informational under criteria v2; model load is reported because the release link changes native thunk code but not ONNX Runtime or the model file.
+
+### Corrected counts and parity evidence
+
+Applying canonical SlidingVoteGate (src/filter/gate.rs): fail-open, mute only when all last 3 similarities are < 0.75; vote history resets per input file and per repeat; each 3 s window counted once per file per repeat; repeats aggregated by summed counts, never chained gives per-repeat target raw 30/39 and app-vote 39/39, per-repeat other raw 0/117 and app-vote 6/117. Pooled over two independent repeats: target raw 60/78 = 76.9%, target app-vote 78/78 = 100.0%, other raw 0/234 = 0.0%, other app-vote 12/234 = 5.128%. These match the scriptc lane exactly. The earlier pyscriptc 84.6% figure came from the majority-of-3 diagnostic rule on raw decisions, not from the shipped app gate.
+
+The corrected harness reports 312 aligned windows with 0 raw decision mismatches, 0 app-vote mismatches, 0 similarity mismatches and 0 FNV digest mismatches, with deterministic True across both repeats. On the release-linked artifact the target_1272 invocation also matches the release native probe exactly: 39/39 windows, 30/39 raw passes, 39/39 app-vote passes, zero mismatches, and recomputed FNV digest `43c86ebaccf85fb4` on both sides.
+
+### Blocker on the full release sweep
+
+The full four-input release re-run was started with the corrected harness, but other agents held `/tmp/tsc.lock` continuously for over 13 minutes. Only the two native release runs (all four inputs) and the first release-linked pyscriptc target run completed before the hard deadline; the remaining seven pyscriptc invocations were still queued on the lock and were stopped. The full two-repeat parity and count figures above therefore come from the corrected harness on the debug-linked standardized evidence, where the ABI decision path is identical, while runtime, RSS, model load and artifact size come from release-mode evidence. Release-mode parity for the three other-speaker files is not independently confirmed in this amendment. Evidence is in `/tmp/opencode/g2ps-rel/sweep.log`.
+
+### Amended verdict
+
+VERDICT: pass with constraints under criteria v2. Backend-correctness gates hold on all available evidence: exact native parity and determinism, no correctness-blocking fence, working enrollment/scoring/profile lifecycle, no missing `libonnxruntime.so`, an artifact below 150 MB, and release-mode runtime below 1 s and within 1.5x of the native release probe. Recall/FPR at 0.75 and RSS are informational under criteria v2 and both backends share the same model/fixture outcome. Constraints: the full release-mode pyscriptc four-input re-run remains incomplete because of lock contention, the ONNX model is provisioned at runtime, the C frame wrapper and static C++ link flags remain mandatory, vote gating is computed in the measurement harness rather than inside either spike CLI, and all timings depend on the shared `/tmp/tsc.lock` discipline.
