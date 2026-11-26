@@ -114,7 +114,13 @@ function run(): void {
   jsonFrame.set(i64(capacity), 0);
   requireOk(vaCall(session, 12, jsonFrame), "serialize_profile_json");
   const written = readI64(jsonFrame);
-  const json = new TextDecoder().decode(jsonFrame.subarray(8, 8 + written));
+  const jsonBytes = new Uint8Array(written);
+  let jsonIndex = 0;
+  while (jsonIndex < written) {
+    jsonBytes[jsonIndex] = jsonFrame[8 + jsonIndex];
+    jsonIndex += 1;
+  }
+  const json = new TextDecoder().decode(jsonBytes);
 
   const restored = vaCreate();
   const restoredPath = new TextEncoder().encode("mock://builtin\u0000");

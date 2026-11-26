@@ -85,7 +85,7 @@ def run() -> None:
     embedding: list[int] = []
     push_i64(embedding, dim)
     i = 0
-    while i < dim:
+    while i < dim * 4:
         embedding.append(0)
         i += 1
     check(voce_adapter.call(session, 6, embedding), 6)

@@ -31,4 +31,3 @@ name = "call"
 py = "(session: int, op: int, frame: list[int]) -> int"
 c_symbol = "voce_adapter_frame"
 abi = "ps_ffi_va_call"
-borrows = ["session", "frame"]

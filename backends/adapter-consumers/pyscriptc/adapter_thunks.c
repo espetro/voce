@@ -9,6 +9,7 @@
 #include <ps_rt.h>
 
 #include "../../../native/voce_adapter.h"
+#include "../../../native/voce_native.h"
 
 #include <stdint.h>
 #include <stdlib.h>
