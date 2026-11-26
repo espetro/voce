@@ -1,12 +1,27 @@
 {
-  "ffi_format": 6,
+  "ffi_format": 7,
   "functions": [
-    { "name": "voceEmbDim", "symbol": "voce_emb_dim", "params": [], "returns": "u32" },
-    { "name": "voceEmbed", "symbol": "voce_embed",
-      "params": ["mutable-bytes", "u32", "mutable-bytes"], "returns": "i32" },
-    { "name": "voceSimilarity", "symbol": "voce_similarity",
-      "params": ["mutable-bytes", "mutable-bytes", "u32"], "returns": "f64" }
+    {
+      "name": "voceEmbDim",
+      "symbol": "voce_emb_dim",
+      "params": [],
+      "returns": "u32"
+    },
+    {
+      "name": "voceSimilarity",
+      "symbol": "voce_similarity",
+      "params": [
+        "u32",
+        "bytes",
+        "bytes"
+      ],
+      "returns": "f64"
+    }
   ],
-  "libraries": ["./libvoce_native_stub.a"],
-  "system_libraries": ["m"]
+  "libraries": [
+    "./libvoce_native_stub.a"
+  ],
+  "system_libraries": [
+    "m"
+  ]
 }
