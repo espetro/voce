@@ -3,6 +3,8 @@
 //! These call the same three exported symbols scriptc and pyscriptc bind. The
 //! flows mirror native/tests/abi.rs and the Gate 1/Gate 2 probe sequences.
 
+use std::sync::{Mutex, MutexGuard};
+
 use voce_native::adapter::frame;
 use voce_native::adapter::op;
 use voce_native::adapter::{
@@ -16,10 +18,19 @@ const INVALID_STATE: i32 = -3;
 const BUFFER_TOO_SMALL: i32 = -4;
 const UNSUPPORTED: i32 = -7;
 
+// The adapter sessions are process-global and not thread-safe; serialize every
+// test so the shared 16-slot table is never mutated concurrently.
+static ADAPTER_LOCK: Mutex<()> = Mutex::new(());
+
+fn adapter_lock() -> MutexGuard<'static, ()> {
+    ADAPTER_LOCK.lock().unwrap_or_else(|error| error.into_inner())
+}
+
 struct Session(i32);
 
 impl Session {
     fn new() -> Self {
+        let _guard = adapter_lock();
         let id = unsafe { voce_adapter_create() };
         assert!(id >= 1, "create failed with {id}");
         Self(id)
@@ -30,16 +41,19 @@ impl Session {
     }
 
     fn call(&self, op: i32, frame: &mut [u8]) -> i32 {
+        let _guard = adapter_lock();
         unsafe { voce_adapter_frame(self.id(), op, frame.as_mut_ptr(), frame.len() as i64) }
     }
 
     fn call_len(&self, op: i32, frame: &mut [u8], len: i64) -> i32 {
+        let _guard = adapter_lock();
         unsafe { voce_adapter_frame(self.id(), op, frame.as_mut_ptr(), len) }
     }
 }
 
 impl Drop for Session {
     fn drop(&mut self) {
+        let _guard = adapter_lock();
         unsafe { voce_adapter_destroy(self.0) }
     }
 }
@@ -51,6 +65,7 @@ fn tone(frequency: f32, samples: usize) -> Vec<f32> {
 }
 
 fn call(session: i32, op: i32, frame: &mut [u8]) -> i32 {
+    let _guard = adapter_lock();
     unsafe { voce_adapter_frame(session, op, frame.as_mut_ptr(), frame.len() as i64) }
 }
 
@@ -87,9 +102,15 @@ fn lifecycle_rejects_dead_sessions_and_unknown_ops() {
     let mut frame = vec![0u8; I64_PREFIX_BYTES];
     assert_eq!(session.call(99, &mut frame), UNSUPPORTED);
     let id = session.id();
-    unsafe { voce_adapter_destroy(id) };
+    {
+        let _guard = adapter_lock();
+        unsafe { voce_adapter_destroy(id) };
+    }
     assert_eq!(call(id, op::EMBEDDING_DIM, &mut frame), INVALID_STATE);
-    unsafe { voce_adapter_destroy(id) }; // idempotent, no double free
+    {
+        let _guard = adapter_lock();
+        unsafe { voce_adapter_destroy(id) }; // idempotent, no double free
+    }
 }
 
 #[test]
