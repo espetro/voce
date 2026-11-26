@@ -98,8 +98,28 @@ symbols.
 runs the original raw-ABI suite, the new C-adapter ABI suite, and Rust frame
 codec unit tests. On this host the build needs
 `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0` because the root filesystem is
-nearly full; `--offline` avoids registry traffic. The consumer scripts build
-the staticlib with the same flags and then compile one probe per backend.
+nearly full; `--offline` avoids registry traffic. The native crate now emits a
+staticlib and `native/build.rs` copies `libvoce_adapter.a` beside
+`libvoce_native.a` in `target/debug`, which is the stable archive path the
+consumer manifests need. The consumer scripts build with the same flags and
+then compile one probe per backend.
 
 Baseline before the change: the raw `abi` test target could not be built on
 this host because the root filesystem was full; no test assertion failed.
+
+Observed after the change with
+`CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 cargo test --manifest-path native/Cargo.toml --test abi --test adapter --lib --offline`:
+lib 9 passed / 0 failed, `tests/abi.rs` 7 passed / 0 failed, `tests/adapter.rs`
+3 passed / 0 failed. The C reproducer
+`backends/adapter-consumers/c_reproducer.c` links only `libvoce_adapter.a` and
+`libvoce_native.a` and exercises both consumption shapes in one probe flow:
+`adapter C reproducer: dim=256 windows=2 json=5792`.
+
+The two consumer scripts use `/tmp/tsc.lock`, which another agent held for its
+Gate 2 hardening sweep during this spike. The probes were therefore built and
+run directly with the same flags the scripts use. The scriptc probe printed
+`{"dim":256,"similarity":1,"windows":2,"restored_similarity":1,"json_bytes":5792}`.
+The pyscriptc probe printed `256`, `2`, `1111`, `0`, `0` for embedding dimension,
+complete windows, JSON bytes, score similarity bits and restored similarity
+bits. Both bind only `voce_adapter_create`, `voce_adapter_destroy` and
+`voce_adapter_frame`.
